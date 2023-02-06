@@ -136,6 +136,7 @@ COMMIT;
 - LOCK 또한 세션 A와 세션 B로 나눠 각각 dbweaver 및 SQL\*PLUS를 사용하여 SCOTT으로 접속한 후 진행합니다.
 
 - dbweaver와 SQL\*PLUS로 LOCK 알아보기
+
 |세션 A(dbweaver)|세션 B(SQL\*PLUS)|
 |----|----|
 |SELECT \* FROM DEPT_TCL; - (1)|SELECT \* FROM DEPT_TCL; - (2)|
@@ -144,6 +145,7 @@ COMMIT;
 
 - 세션 A에서 30번 부서에 UPDATE문을 사용하여 데이터를 변경해보겠습니다.
 - dbweaver와 SQL\*PLUS로 LOCK 알아보기
+
 |세션 A(dbweaver)|세션 B(SQL\*PLUS)|
 |----|----|
 |UPDATE DEPT_TCL SET LOC='SEOUL'<br>WHERE DEPTNO = 30; - (1)|세션 A의 UPDATE 명령이 끝날 때까지 기다려 주세요.|
@@ -153,6 +155,7 @@ COMMIT;
 
 - 이 상태에서 세션 B의 30번 부서에(세션 A가 변경 중인)에 UPDATE문을 실행해 보겠습니다. 
 - dbweaver와 SQL\*PLUS로 LOCK 알아보기
+
 |세션 A(dbweaver)|세션 B(SQL\*PLUS)|
 |----|----|
 |A는 아무런 작업을 하지 않습니다.|UPDATE DEPT_TCL SET DNAME='DATABASE'<br>WHERE DEPTNO = 30; - (1)|
