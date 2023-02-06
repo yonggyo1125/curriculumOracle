@@ -142,4 +142,23 @@ COMMIT;
 
 - DEPT_TCL 테이블에 데 이상 별다른 작업을 진행하지 않았다면 데이터는 동일하게 출력됩니다.
 
-- 세션
+- 세션 A에서 30번 부서에 UPDATE문을 사용하여 데이터를 변경해보겠습니다.
+- dbweaver와 SQL\*PLUS로 LOCK 알아보기
+|세션 A(dbweaver)|세션 B(SQL\*PLUS)|
+|----|----|
+|UPDATE DEPT_TCL SET LOC='SEOUL'<br>WHERE DEPTNO = 30; - (1)|세션 A의 UPDATE 명령이 끝날 때까지 기다려 주세요.|
+|SELECT \* FROM DEPT_TCL; - (2)|SELECT \* FROM DEPT_TCL; - (3)|
+
+- 앞의 세션 때와 마찬가지로 UPDATE문을 실행하고 있는 세션 A에서는 30번 부서의 LOC 열이 SEOUL로 변경되었지만 COMMIT은 되지 않은 상태이므로 세션 B에서는 30번 부서에 변화가 없습니다. 
+
+- 이 상태에서 세션 B의 30번 부서에(세션 A가 변경 중인)에 UPDATE문을 실행해 보겠습니다. 
+- dbweaver와 SQL\*PLUS로 LOCK 알아보기
+|세션 A(dbweaver)|세션 B(SQL\*PLUS)|
+|----|----|
+|A는 아무런 작업을 하지 않습니다.|UPDATE DEPT_TCL SET DNAME='DATABASE'<br>WHERE DEPTNO = 30; - (1)|
+
+- 세션 B에서 UPDATE문을 작성하고 실행하면 아무런 동작이 일어나지 않습니다. SQL\*PLUS화면을 보면 화면이 멈춘듯 가만히 있을 겁니다.
+
+- 이는 세션 A에서 DEPT_TCL 테이블의 30번 부서 데이터를 먼저 조작하고 있기 때문입니다. 세션 A에서 수행 중인 30번 부서 행 데이터의 조작이 완료되지 않았기 때문에 COMMIT 또는 ROLLBACK을 수행하기 전까지 30번 부서 행 데이터를 조작하려는 다른 세션은 작업을 대기하게 됩니다. 이렇게 특정 세션에서 데이터 조작이 완료될 때까지 다른 세션에서 해당 데이터 조작을 기다리는 현상을 HANG(행)이라고 합니다.
+
+- 세션 B의 UPDATE문은 세션 A의 현재 트랜잭션이 종료되기 전까지는 수행되지 못합니다. 즉 세션 A에서 COMMIT으로 데이터 변경을 확정하여 반영하거나, ROLLBACK으로 세션 A의 UPDATE문 실행을 취소해야만 30번 부서 데이터의 LOCK이 풀립니다. 그리고 데이터의 LOCK이 풀린 즉시 세션 B는 UPDATE문을 실행합니다.
