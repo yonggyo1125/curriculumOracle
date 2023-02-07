@@ -55,4 +55,101 @@ CREATE TABLE EMP_DDL (
 DESC EMP_DDL;
 ```
 
-|NUMBER(7, 2)는 소수점 이하 두 자리 숫자를 포함한 7자리 숫자를 저장할 수 있음을 뜻합니다. 즉 자연수는 5자리까지 표현할 수 있으므로 12345.67 같이 저장할 수 있습니다. DATE는 길이 지정이 필요 없는 자료형이기 때문에 소괄호를 사용할지 않습니다.
+
+| NUMBER(7, 2)는 소수점 이하 두 자리 숫자를 포함한 7자리 숫자를 저장할 수 있음을 뜻합니다. 즉 자연수는 5자리까지 표현할 수 있으므로 12345.67 같이 저장할 수 있습니다. DATE는 길이 지정이 필요 없는 자료형이기 때문에 소괄호를 사용할지 않습니다.
+
+### 실습 - 기본 테이블 열 구조와 데이터를 복사하여 새 테이블 생성하기
+
+- 다른 테이블을 복사하여 테이블 생성하기
+
+```
+CREATE TABLE DEPT_DDL 
+	AS SELECT * FROM DEPT;
+	
+DESC DEPT_DDL;
+```
+
+- DEPT_DDL 테이블 전체 조회하기
+
+```
+SELECT * FROM DEPT_DDL;
+```
+
+- 다른 테이블의 일부를 복사하여 테이블 생성하기
+
+```
+CREATE TABLE EMP_DDL_30
+	AS SELECT * FROM EMP WHERE DEPTNO = 30;
+
+SELECT * FROM EMP_DDL_30;
+```
+
+- 다른 테이블을 복사하여 테이블 생성하기
+
+```
+CREATE TABLE EMPDEPT_DDL
+	AS SELECT E.EMPNO, E.ENAME, E.JOB, E.MGR, E.HIREDATE, 
+			E.SAL, E.COMM, D.DEPTNO, D.DNAME, D.LOC 
+		FROM EMP E, DEPT D
+		WHERE 1 <> 1;
+	
+SELECT * FROM EMPDEPT_DDL;
+```
+
+* * * 
+## 테이블을 변경하는 ALTER
+
+- ALTER 명령어는 이미 생성된 오라클 데이터베이스 객체를 변경할 때 사용합니다. 테이블에 새 열을 추가 또는 삭제하거나 열의 자료형 또는 길이를 변경하는 등 테이블 구조 변경과 관련된 기능을 수행합니다. 
+- EMP 테이블을 복사하여 EMP_ALTER 테이블 생성하기
+
+```
+CREATE TABLE EMP_ALTER
+	AS SELECT * FROM EMP;
+	
+SELECT * FROM EMP_ALTER;
+```
+
+### 테이블에 열 추가하는 ADD
+- ALTER TABLE 명령어와 ADD 키워드, 추가할 열 이름과 자료형을 명시하면 테이블에 새 열을 추가할 수 있습니다. 
+- ALTER 명령어로 HP 열 추가하기
+
+```
+ALTER TABLE EMP_ALTER ADD HP VARCHAR2(20);
+
+SELECT * FROM EMP_ALTER;
+```
+
+### 열 이름을 변경하는 ENAME 
+- ALTER 명령어에 RENAME 키워드를 사용하면 테이블의 열 이름을 변경할 수 있습니다.
+- ALTER 명령어로 HP 열 이름을 TEL로 변경하기
+
+```
+ALTER TABLE EMP_ALTER
+	RENAME COLUMN HP TO TEL;
+	
+SELECT * FROM EMP_ALTER;
+```
+
+### 열의 자료형을 변경하는 MODIFY
+- ALTER 명령어로 EMPNO 열 길이 변경하기
+
+```
+ALTER TABLE EMP_ALTER 
+	MODIFY EMPNO NUMBER(5);
+	
+DESC EMP_ALTER;
+```
+
+### 특정 열을 삭제할 때 사용하는 DROP
+- 테이블의 특정 열을 삭제할 때 DROP 키워드를 사용합니다. 열을 삭제하면 해당 열의 데이터도 함께 삭제되므로 신중하게 사용해야 합니다.
+- ALTER 명령어로 TEL열 삭제하기
+
+```
+ALTER TABLE EMP_ALTER DROP COLUMN TEL;
+
+SELECT * FROM EMP_ALTER;
+```
+
+* * * 
+## 테이블 이름을 변경하는 RENAME 
+
