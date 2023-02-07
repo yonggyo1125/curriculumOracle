@@ -153,3 +153,48 @@ SELECT * FROM EMP_ALTER;
 * * * 
 ## 테이블 이름을 변경하는 RENAME 
 
+- 테이블 이름을 변경할 때는 RENAME 명령어를 사용합니다. 앞에서 생성한 EMP_ALTER 테이블 이름을 EMP_RENAME으로 변경해 보겠습니다.
+
+```
+RENAME EMP_ALTER TO EMP_RENAME;
+```
+
+- 변경된 테이블 이름(EMP_RENAME)으로 조회하기
+
+```
+SELECT * FROM EMP_RENAME;
+```
+
+* * * 
+## 테이블의 데이터를 삭제하는 TRUNCATE
+
+- TRUNCATE 명령어는 특정 테이블의 모든 데이터를 삭제합니다. 데이터만 삭제하므로 테이블 구조에는 영향을 주지 않습니다.
+
+- EMP_RENAME 테이블의 전체 데이터 삭제하기
+
+```
+TRUNCATE TABLE EMP_RENAME; 
+
+SELECT * FROM EMP_RENAME;
+```
+
+- TRUNCATE 명령어를 사용할 때 유의점<br>테이블의 데이터 삭제는 데이터 조작어 중 WHERE절을 명시하지 않은 DELETE문의 수행으로 가능합니다. 하지만 TRUNCATE는 데이터 정의어이기 때문에 ROLLBACK이 되지 않는다믄 점에서 DELETE문과 다릅니다. 즉 삭제 이후 복구할 수 없습니다.
+
+## 테이블을 삭제하는 DROP 
+
+- DROP 명령어는 데이터베이스 객체를 삭제하는 데 사용합니다. 테이블이 삭제되므로 테이블에 저장된 데이터도 모두 삭제됩니다.
+
+- EMP_RENAME 테이블 삭제하기
+
+```
+DROP TABLE EMP_RENAME;
+```
+
+- 테이블이 삭제되었으므로 EMP_RENAME 테이블을 사용할 수 없습니다.
+
+```
+DESC EMP_RENAME;
+```
+
+| DROP 명령어 역시 데이터 정의어이므로 ROLLBACK 명령어로 데이터 삭제 수행을 취소할 수 없습니다.
+
