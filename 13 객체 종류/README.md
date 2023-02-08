@@ -48,3 +48,34 @@ SELECT TABLE_NAME
 ### ALL_ 접두어를 가진 데이터 사전
 
 - ALL_ 접두어를 가진 데이터 사전은 오라클 데이터베이스에 접속해 있는 사용자가 소유한 객체 및 다른 사용자가 소유한 객체 중 사용이 허락되어 있는 객체 정보를 가지고 있습니다.
+
+- SCOTT 계정이 사용할 수 있는 객체 정보 살펴보기 (ALL,접두어 사용)
+
+```
+SELECT OWNER, TABLE_NAME FROM ALL_TABLES;
+```
+
+- ALL TABLES에는 USER_TABLES와 달리 OWNER 열이 하나 더 있습니다. 이 열은 데이터를 소유한 사용자를 명시합니다. DUAL 테이블은 오라클 관리 계정 SYS소유이고 SCOTT 계정은 이 테이블의 사용을 허가받은 것입니다.
+- OWNER 열 이외의 열은 USER_TABLES , ALL_TABLES 모두 동일한 열 구조를 가집니다. 다음은 TABLES와 ALL_TABLES의 열 일부입니다.
+
+|열 이름|자료형|NULL 여부|설명|
+|-----|----|----|-----|
+|OWNER|VARCHAR2(30)|NOT NULL|테이블을 소유한 사용자(ALL_TABLES에만 존재)|
+|TABLE_NAME|VARCHAR(30)|NOT NULL|테이블 이름|
+|TABLESPACE_NAME|VARCHAR(30)||테이블 스페이스 이름|
+|NUM_ROWS|NUMBER||테이블에 저장된 행 수|
+
+### DBA_ 접두어를 가진 데이터 사전
+- DBA_ 접두어를 가진 데이터 사전은 데이터베이스 관리 권한을 가진 사용자만 조회할 수 있는 테이블로서 SCOTT 계정으로는 조회가 불가능합니다.
+- SCOTT 계정으로 DBA_ 접두어 사용하기
+
+```
+SELECT * FROM DBA_TABLES;
+
+- 테이블 또는 뷰가 존재하지 않습니다.
+```
+
+
+
+
+
