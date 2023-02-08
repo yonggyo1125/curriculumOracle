@@ -96,8 +96,70 @@ SELECT * FROM DBA_USERS WHERE USERNAME = 'SCOTT';
 * * * 
 ## 더 빠른 검색을 위한 인덱스
 
+### 인덱스란? 
+- 색인이라는 뜻의 인덱스(index)는 책 내용을 찾는 것과 마찬가지로 오라클 데이터베이스에서 데이터 검색 성능 향상을 위해 테이블 열에 사용하는 객체를 뜻합니다. 테이블에 보관된 특정 행 데이터의 주소, 즉 위치 정보를 책 페이지처럼 목록으로 만들어 놓은 것입니다. 인덱스는 테이블 열을 여러가지 분석을 통해 선정하여 설정할 수 있습니다.
+- 인덱스 사용 여부에 따라 데이터 검색 방식을 Table Full Scan, Index Scan으로 구분합니다.
+- Table Full Scan : 처음부터 끝까지 검색하여 원하는 데이터를 찾는 방식
+- Index Scan : 인덱스를 통해 데이터를 찾는 방식
+
+- SCOTT 계정이 소유한 인덱스 정보 알아보기(SCOTT 계정일 때)
+
+```
+SELECT * FROM USER_INDEXES;
+```
+
+- SCOOT 계정이 소유한 인덱스 컬럼 정보 알아보기(SCOTT 계정일 때)
+
+```
+SELECT * FROM USER_IND_COLUMNS;
+```
+
+- 인덱스는 사용자가 직접 특정 테이블의 열에 지정할 수도 있지만 열이 기본키(primary key) 또는 고유키(unique key)일 경우에 자동으로 생성합니다.
+
+|고유키는 열 데이터의 중복을 허용하지 않는 제약조건(constraint)입니다.
 
 
+### 인덱스 생성
 
+```
+CREATE INDEX 인덱스 이름 
+   ON 테이블 이름(열 이름1 ASC or DESC, 
+                 열 이름2 ASC or DESC,
+		 ...                  );
+		 
+```
 
+- EMP 테이블의 SAL열에 인덱스를 생성하기
 
+```
+CREATE INDEX IDX_EMP_SAL
+   ON EMP(SAL);
+```
+
+- 생성된 인덱스 살펴보기(USER_IND_COLUMNS 사용)
+
+```
+SELECT * FROM USER_IND_COLUMNS;
+```
+
+- IDX_EMP_SAL 인덱스가 생성되고, 인덱스의 정렬 옵션을 지정하지 않으면 기본값은 오름차순(ASC)으로 지정됩니다. 
+- 인덱스가 걸린 SAL열을 WHERE의 검색조건으로 하여 EMP 테이블을 조회하면 출력 속도가 빨라질 것이라 예상할 수 있습니다. 
+- 하지만 인덱스를 지정한 열의 선정은 데이터의 구조 및 데이터의 분포도 등 여러 조건을 고려해서 이루어져야 합니다. 인덱스를 지정하면 데이터 조회를 반드시 빠르게 한다고 보장하기는 어렵습니다. 
+
+### 인덱스 삭제
+
+```
+DROP INDEX 인덱스 이름;
+```
+
+- 인덱스 삭제하기
+
+```
+DROP INDEX IDX_EMP_SAL;
+```
+
+- 생성된 인덱스 살펴보기(USER_IND_COLUMNS 사용)
+
+```
+SELECT * FROM USER_IND_COLUMNS;
+```
