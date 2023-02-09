@@ -169,3 +169,66 @@ SELECT * FROM USER_IND_COLUMNS;
 * * * 
 ## 테이블처럼 사용하는 뷰
 
+### 뷰란?
+- 흔히 가상테리블(virtual table)로 부르는 뷰(view)는 하나 이상의 테이블을 조회하는 SELECT 문을 저장한 객체를 뜻합니다. SELECT 문을 저장하기 때문에 물리적 데이터를 따로 저장하지는 않습니다. 따라서 뷰를 SELECT문의 FROM절에 사용하면 특정 테이블을 조회하는 것과 같은 효과를 얻을 수 있습니다. 
+
+### 뷰의 사용 목적(편리성)
+
+- 편리성 : SELECT문의 복잡도를 완화하기 위해
+- 보안성 : 테이블의 특정 열을 노출하고 싶지 않을 경우 \
+
+### 뷰 생성
+
+- 뷰는 CREATE문으로 생ㅅ헝할 수 있습니다. SCOTT 계정은 뷰 생성 권한이 없으므로 SYSTEM계정으로 접속한 후 다음 명령어를 사용하여 SCOTT 계정에 권한을 부여해 주어야 합니다.
+
+```
+SQLPLUS SYSTEM/oracle
+
+GRANT CREATE VIEW TO SCOTT;
+```
+
+```
+CREATE [OR REPLACE - (1)] [FORCE - (2) | NOFORCE - (3)] VIEW 뷰 이름 - (4) (열 이름1 - (5), 열 이름2 ...)
+   AS (저장할 SELECT 문 - (6))
+[WITH CHECK OPTION - (7) [CONSTRAINT 제약조건]]
+[WITH READ ONLY - (8) [CONTRAINT 제약조건]]
+```
+
+|요소|설정|
+|----|-----|
+|OR REPLACE|같은 이름의 뷰가 이미 존재할 경우에 현재 생성할 뷰로 대체하도록 생성(선택)|
+|FORCE|뷰가 저장할 SELECT문의 기반 테이블이 존재하지 않아도 강제로 생성(선택)|
+|NOFORCE|뷰가 저장할 SELECT문의 기반 테이블이 존재할 경우에만 생성(기본값)(선택)|
+|뷰 이름|생성할 뷰 이름을 지정(필수)|
+|열 이름|SELECT문에 명시한 이름 대신 사용할 열 이름 지정(생략 가능)(선택)|
+|저장할 SELECT문|생성할 뷰에 저장할 SELECT문 지정(필수)|
+|WITH CHECK OPTION|지정한 제약 조건을 만족하는 데이터에 한해 DML 작업이 가능하도록 뷰 생성(선택)|
+|WITH READ ONLY|뷰의 열람, 즉 SELECT만 가능하도록 뷰 생성(선택)|
+
+
+- 뷰 생성하기
+
+```
+CREATE VIEW VW_EMP20 
+   AS (SELECT EMPNO, ENAME, JOB, DEPTNO FROM EMP WHERE DEPTNO = 20);
+```
+
+- 생성한 뷰 확인하기
+
+```
+SELECT * FROM USER_VIEWS;
+```
+
+- SELECT문을 dbweaver에서 실행한 결과를 보면 TEXT 열의 데이터가 제대로 나오지 않습니다.
+
+- 하지만 SQL\*PLUS에서 USER_VIEWS로 조회하면 VW_EMP20 뷰에 저장된 SELECT문을 다음과 같이 확인할 수 있습니다.
+
+```
+SELECT VIEW_NAME, TEXT_LENGTH, TEXT FROM USER_VIEWS;
+```
+
+
+
+
+
+
