@@ -227,8 +227,85 @@ SELECT * FROM USER_VIEWS;
 SELECT VIEW_NAME, TEXT_LENGTH, TEXT FROM USER_VIEWS;
 ```
 
+- 생성한 뷰 조회하기
 
+```
+SELECT * FROM VW_EMP20;
+```
 
+- 뷰 삭제 
 
+```
+DROP VIEW VW_EMP20;
+```
 
+- 뷰는 실제 데이터가 아닌 데이터가 아닌 SELECT문만 저장하므로 뷰를 삭제해도 테이블이나 데이터가 삭제되는 것은 아닙니다.
 
+| 뷰는 SELECT문만 저장하는 객체이기 때문에 데이터 삽입,수정,삭제 같은 데이터 조작어 사용이 불가능할 것이라 생각할 수 있지만, 의외로 뷰에도 데이터 조작어를 직접 사용할 수 있는 경우가 있습니다. 하지만 뷰를 통한 테이블 데이터 조작이 가능하려면 여러 가지 조건을 만족해야 하고 테이블을 설계할 때 누락된 내용이 있으면 뷰를 통한 데이터 조작으로 인해 적합하지 않은 데이터가 생길 수도 있으므로 자주 사용하는 편은 아닙니다.<br>이는 뷰의 주 목적이 물리적 데이터를 저장하지 않고 SELET문만 저장함으로써 테이블의 데이터를 열람하는 것이기 때문입니다.
+
+### 인라인 뷰를 사용한 TOP-N SQL문 
+
+- CREATE문을 통해 객체로 만들어지는 뷰 외에 SQL문에서 일회성으로 만들어서 사용하는 뷰를 인라인 뷰(inline view)라고 합니다. 
+- SELECT문에서 사용되는 서브쿼리, WITH절에서 미리 이름을 정의해 두고 사용하는 SELECT문 등이 이에 해당합니다.
+
+- ROWNUM을 추가로 조회하기
+
+```
+SELECT ROWNUM, E.* FROM EMP E;
+```
+
+- 결과 화면을 살펴보면 ROWNUM 열은 EMP 테이블에 존재하지는 않지만 ROWNUM열의 데이터가 숫자로 출력되고 있음을 확인할 수 있습니다.
+- ROWNUM은 의사 열(pseudo column)이라고 하는 특수 열입니다. 의사 열은 데이터가 저장되는 실제 테이블에 존재하지는 않지만 특정 목적을 위해 테이블에 저장되어 있는 열처럼 사용 가능한 열을 뜻합니다.
+
+- EMP 테이블을 SAL 열 기준으로 정렬하기
+
+```
+SELECT ROWNUM, E.* FROM EMP EMP ORDER BY SQL DESC;
+```
+
+- 결과화면에서 데이터를 급여 기준으로 정렬(내림차순) 했지만 ROWNUM은 앞에서 사용한 SELECT문의 행 번호화 같은 번호로 매개져 있습니다.
+- ROWNUM은 데이터를 하나씩 추가할 때 매겨지는 번호이므로 ORDER BY절을 통해 정렬해도 유지되는 특성이 있습니다.
+
+- 인라인 뷰(서브쿼리 사용)
+
+```
+SELECT ROWNUM, E.* FROM (SELECT * FROM EMP E ORDER BY SAL DESC) E;
+```
+
+- 인라인 뷰(WITH절  사용)
+
+```
+WITH E AS (SELECT * FROM EMP ORDER BY SAL DESC)
+SELECT ROWNUM, E.* FROM E;
+```
+
+- ORDER BY절로 정렬(SAL 열의 내림차순)된 SELECT문의 데이터가 메인 쿼리의 SELECT 문에서 한 행씩 순서대로 ROWNUM이 매겨져 정렬된 순서 그래도 번호가 매겨진다.
+
+- 급여가 높은 상위 세 명의 데이터만 출력하려면 ROWNUM을 WHERE절 조건으로 지정하면 됩니다. 
+
+- 인라인 뷰로 TOP-N 추출하기(서브쿼리 사용)
+
+```
+SELECT ROWNUM, E.* 
+	FROM (SELECT * FROM EMP E ORDER BY SAL DESC) E 
+WHERE ROWNUM <= 3;
+```
+
+- 인라인 뷰로 TOP-N 추출하기(WITH절 사용)
+
+```
+WITH E AS (SELECT * FROM EMP ORDER BY SAL DESC)
+SELECT ROWNUM, E.* FROM E WHERE ROWNUM <= 3;
+```
+* * * 
+
+## 규칙에 따라 순번을 생성하는 시퀀스 
+
+### 시퀀스란?
+- 시퀀스(sequence)는 오라클 데이터베이스에서 특정 규칙에 맞는 연속 숫자를 생성하는 객체입니다. 은행이나 병원의 대기 순서표와 마찬가지로 번호를 사용해야 하는 사용자에게 계속 다음 번호를 만들어 주는 역할을 합니다.
+
+### 시퀀스 생성
+
+```
+CREATE SEQUENCE 시퀀스 이름 - (1)
+```
