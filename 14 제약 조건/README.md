@@ -466,3 +466,230 @@ CREATE TABLE TABLE_NAME (
 * * * 
 ## 다른 테이블과 관계를 맺는 FOREIGN KEY
 - 외래키, 외부키로도 부르는 FOREIGN KEY는 서로 다른 테이블 간 관계를 정의하는 데 사용하는 제약 조건입니다.
+- 특정 테이블에서 PRIMARY KEY 제약 조건을 지정한 열을 다른 테이블의 특정 열에서 참조하겠다는 의미로 지정할 수 있습니다. 
+
+- EMP 테이블과 DEPT 테이블의 제약 조건 살펴보기
+
+```
+SELECT OWNER, CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME, R_OWNER, R_CONSTRAINT_NAME
+FROM USER_CONSTRAINTS 
+WHERE TABLE_NAME IN ('EMP', 'DEPT');
+```
+
+- CONSTRAINT_TYPE 열 값이 R일 경우 외래키를 의미하며 R_CONSTRAINT_NAME의 PK_DEPT는 DEPT 테이블의 PRIMARY KEY, 즉 DEPT 테이블의 PRIMARY KEY, 즉 DEPT 테이블의 DEPTNO 열을 참조한다는 뜻입니다.
+
+- FOREIGN KEY가 참조하는 열에 존재하지 않는 데이터 입력하기
+
+```
+INSERT INTO EMP (EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO)
+VALUES (9999, '홍길동', 'CLERK', '7788', TO_DATE('2017/04/30', 'YYYY/MM/DD'), 1200, NULL, 50);
+```
+
+- 오류 메시지에 '부모 키가 없습니다' 라는 말은 DEPT 테이블의 DEPTNO 열에 50이 존재하지 않는다는 뜻입니다. 
+- 참조 대상 테이블은 부모, 참조하는 테이블을 자식으로 표현합니다.
+
+### FOREIGN KEY 지정하기
+
+```
+CREATE TABLE 테이블 이름 (
+	...(다른 열 정의),
+	열 자료형 CONSTRAINT [제약 조건 이름] REFERENCES 참조 테이블(참조할 열)
+);
+```
+
+- 제약 조건 이름을 지정하지 않고 FOREIGN KEY를 정의할 수 있습니다. 
+
+```
+CREATE TABLE 테이블 이름 (
+	...(다른 열 정의),
+	열 자료형 REFERENCES 참조 테이블(참조할 열)
+);
+```
+
+- 열을 모두 정의한 후 제약 조건을 지정하려면 오른쪽과 같이 마지막에 CONSTRAINT 키워드를 사용하면 됩니다.
+
+```
+CREATE TABLE 테이블 이름(
+	...(다른 열 정의), 
+	CONSTRAINT [제약 조건 이름] FOREIGN KEY(열) 
+	REFERENCES 참조 테이블(참조할 열)
+);
+```
+
+- DEPT_FK 테이블 생성합니다.
+
+```
+CREATE TABLE DEPT_FK (
+	DEPTNO NUMBER(2) CONSTRAINT DEPTFK_DEPTNO_PK PRIMARY KEY, 
+	DNAME VARCHAR2(14),
+	LOC VARCHAR2(13)
+);
+
+DESC DEPT_FK;
+```
+
+- EMP_FK 테이블 생성하기
+
+```
+CREATE TABLE EMP_FK (
+	EMPNO NUMBER(4) CONSTRAINT EMPFK_EMPNO_PK PRIMARY KEY,
+	ENAME VARCHAR2(10),
+	JOB VARCHAR2(9),
+	MGR NUMBER(4),
+	HIREDATE DATE, 
+	SAL NUMBER(7,2),
+	COMM NUMBER(7,2),
+	DEPTNO NUMBER(2) CONSTRAINT EMPFK_DEPTNO_FK REFERENCES DEPT_FK (DEPTNO)
+);
+```
+
+- EMP_PK 테이블의 DEPTNO 열은 이제 DEPT_PK 테이블의 DEPTNO 열을 참조하는 FOREIGN KEY 제약 조건이 지정되었습니다.
+
+- FOREIGN KEY 지정할 때 유의점<br>테이블을 만들고 나서 DEPT_FK 테이블에는 데이터가 아직 없는 상태입니다. 이로 인해 EMP_FK 테이블에 데이터를 추가할 때 부서 번호(DEPTNO)를 지정하면 오류가 나서 실행되지 않습니다. 
+- 앞서 살펴본 대로 EMP_PK 테이블의 DEPTNO 열은 DEPT_FK 테이블의 DEPTNO를 참조하기 때문에 DEPT_FK 테이블의 DEPTNO열에 존재하지 않는 값을 사용하는 것은 불가능합니다.
+
+- EMP_FK 테이블에 데이터 삽입하기(DEPTNO) 데이터가 아직 DEPT_FK 테이블에 없을 때)
+
+```
+INSERT INTO EMP_FK
+VALUES (9999, 'TEST_NMAME', 'TEST_JOB', NULL, TO_DATE('2001/01/01', 'YYYY/MM/DD'), 3000, NULL, 10);
+```
+
+- DEPT_FK에 데이터 삽입하기
+
+```
+INSERT INT DEPT_FK
+VALUES (10, 'TEST_DNAME', 'TEST_LOC');
+
+SELECT * FROM DEPT_FK;
+```
+
+- 앞서 실행에 실패한 EMP_FK 테이블의 INSERT문을 다시 실행해 보면 정상적으로 실행됩니다.
+
+```
+INSERT INTO EMP_FK
+VALUES (9999, 'TEST_NMAME', 'TEST_JOB', NULL, TO_DATE('2001/01/01', 'YYYY/MM/DD'), 3000, NULL, 10);
+
+SELECT * FROM EMP_FK;
+```
+
+### FOREIGN KEY로 참조 행 데이터 삭제하기
+
+- DEPT_FK 테이블의 10번 부서 데이터 삭제하기
+
+```
+DELETE FROM DEPT_FK 
+WHERE DEPTNO = 10;
+```
+
+- 현재 DEPT_PK 테이블에는 10번 부서 데이터가 저장되어 있고 EMP_FK 테이블에는 이 10번 부서를 참조하는 데이터가 있습니다. 이 경우에 DEPT_FK 테이블의 DEPTNO 열에 저장된 10번 부서 데이터는 삭제할 수 없습니다.
+- 오류가 발생하는 이유는 자식 레코드, 즉 삭제하려는 DEPTNO 값을 참조하는 데이터가 존재하기 때문입니다.
+- DEPT_PK 테이블의 데이터를 삭제하려면 다음 방법 중 한 가지를 사용해야 합니다.
+	- 1. 현재 삭제하려는 열 값을 참조하는 데이터를 먼ㅈ저 삭제한다.
+	- 2. 현재 삭제하려는 열 값을 참조하는 데이터를 수정한다. 
+	- 3. 현재 삭제하려는 열을 참조하는 자식 테이블의 FOREIGN KEY 제약 조건을 해제한다.
+
+- 열 데이터를 삭제할 때 이 데이터를 참조하고 있는 데이터도 함께 삭제
+
+```
+CONSTRAINT [제약 조건 이름] REFERENCES 참조 테이블(참조할 열) ON DELETE CASCADE
+```
+
+- DEPT_FK 테이블의 DEPTNO 열 값이 10인 데이터를 삭제하면 이를 참조하는 EMP_FK 테이블의 DEPTNO 열 값이 10인 데이터도 함께 삭제합니다.
+
+- 열 데이터를 삭제할 때 이 데이터를 참조하는 데이터를 NULL로 수정
+
+```
+CONSTRAINT [제약 조건 이름] REFERENCES 참조 테이블(참조할 열) ON DELETE SET NULL
+```
+
+- DEPT_FK 테이블의 DEPTNO 열 값이 10인 데이터를 삭제하면 이를 차조하는 EMP_FK 테이블의 DEPTNO 열 값이 10인 데이터를 NULL로 수정합니다.
+
+* * * 
+## 데이터 형태와 범위를 정하는 CHECK
+
+- CHECK 제약 조건은 열에 저장할 수 있는 값의 범위 또는 패턴을 정의할 때 사용합니다. 
+
+- 테이블을 생성할 때 CHECK 제약 조건을 설정하기
+
+```
+CREATE TABLE TABLE_CHECK (
+	LOGIN_ID VARCHAR2(20) CONSTRAINT TBLCK_LOGINID_PK PRIMARY KEY,
+	LOGIN_PWD VARCHAR2(20) CONSTRAINT TBLCK_LOGINPPW_CK CHECK (LENGTH(LOGIN_PWD) > 3), 
+	TEL  VARCHAR2(20)
+);
+
+DESC TABLE_CHECK;
+```
+
+- CHECK 키워드 다음의 LENGTH(LOGIN_PWD) > 3은 LOGIN_PWD 열 길이가 3 이상인 데이터만 저장 가능하다는 뜻입니다. 즉 비밀번호는 3글자 이상만 저장할 수 있도록 제한을 둔 것입니다. 
+
+|CHECK 제약 조건은 단순 연산뿐 아니라 함수 활용도 가능합니다.
+
+- CHECK 제약 조건이 맞지 않는 예
+
+```
+INSERT INTO TABLE_CHECK
+VALUES ('TEST_ID', '123', '010-1234-5678');
+```
+
+- CHECK 제약 조건에 맞는 예
+
+```
+INSERT INTO TABLE_CHECK
+VALUES ('TEST_ID', '1234', '010-1234-5678');
+
+SELECT * FROM TABLE_CHECK;
+```
+
+- CHECK 제약 조건은 USER_CONSTRAINTS 데이터 사전에서 확인할 수 있습니다. 
+- CONSTRAINT_TYPE 열 값이 C이므로 NOT NULL, CHECK 제약 조건은 모두 C로 출력됩니다. 
+
+- CHECK 제약 조건 확인하기
+
+```
+SELECT OWNER, CONSTRAINT_NAME, CONSTRAINT_TYPE, TABLE_NAME
+	FROM USER_CONSTRAINTS
+WHERE TABLE_NAME LIKE 'TABLE_CHECK';
+```
+
+* * * 
+## 기본값을 정하는 DEFAULT 
+
+- 제약 조건과는 별개로 특정 열에 저장할 값이 지정되지 않았을 경우에 기본값(default)을 지정할 수 있습니다. 이때 사용되는 키워드가 DEFAULT 입니다. 
+
+- 테이블을 생성할 때 DEFAULT 제약 조건 설정하기
+
+```
+CREATE TABLE TABLE_DEFAULT (
+	LOGIN_ID VARCHAR2(20) CONSTRAINT TBLCK2_LOGINID_PK PRIMARY KEY, 
+	LOGIN_PWD VARCHAR2(20) DEFAULT '1234', 
+	TEL VARCHAR2(20) 
+);
+
+DESC TABLE_DEFAULT;
+```
+
+- DEFAULT로 지정한 기본 값이 입력되는 INSERT문 확인하기
+
+```
+INSERT INTO TABLE_DEFAULT VALUES ('TEST_ID', NULL, '010-1234-5678');
+
+INSERT INTO TABLE_DEFAULT (LOGIN_ID, TEL) VALUES ('TEST_ID2', '010-1234-5678');
+
+SELECT * FROM TABLE_DEFAULT;
+```
+
+### 제약 조건 비활성화, 활성화
+
+- 활성화
+
+```
+ALTER TABLE 테이블 이름
+DISABLE [NOVALIDATE / VALIDATE(선택)] CONSTRAINT 제약조건이름;
+```
+
+```
+ALTER TABLE 테이블 이름
+ENABLE [NOVALIDATE / VALIDATE(선택)] CONSTRAINT 제약조건 이름;
+```
