@@ -308,4 +308,195 @@ SELECT ROWNUM, E.* FROM E WHERE ROWNUM <= 3;
 
 ```
 CREATE SEQUENCE 시퀀스 이름 - (1)
+[INCREMENT BY n] - (2)
+[START WITH n] - (3)
+[MAXVALUE n | NOMAXVALUE] - (4)
+[MINVALUE n | NOMINVALUE] - (5)
+[CYCLE | NOCYCLE] - (6)
+[CACHE n | NOCACHE] - (7)
 ```
+
+|번호|설명|
+|----|-----|
+|(1)|생성할 시퀀스 이름 지정 아래 절(2 \~ 7)들을 지정하지 않았을 경우 1부터 시작하여 1만큼 계속 증가하는 시퀀스가 생성(필수)|
+|(2)|시퀀스에서 생성할 번호와 증가 값(기본값은 1)(선택)|
+|(3)|시퀀스에서 생성할 번호의 시작값(기본값은 1)(선택)|
+|(4)|시퀀스에서 생성할 번호의 최대값 지정, 최대값은 시작 값(START WITH) 이상, 최솟값(MINVALUE)을 초기값으로 지정, NOMAXVALUE로 지정하였을 경우 오름차순이면 10^27, 내림차순일 경우 -1로 설정(선택)|
+|(5)|시퀀스에서 생성한 번호의 최소값 지정, 최소값은 시작 값(START WITH) 이하, 최대값(MAXVALUE) 미만 값으로 지정 NOMINVALUE로 지정하였을 경우 오름차순이면 1, 내림차순이면 -10^26으로 설정(선택)|
+|(6)|시퀀스에서 생성한 번호가 최대값(MAXVALUE)에 도달했을 경우 CYCLE이면 시작 값(START WITH)에서 다시 시작, NOCYCLE이면 번호 생성이 중단되고, 추가 번호 생성을 요청하면 오류 발생(선택)|
+|(7)|시퀀스가 생성할 번호를 메모리에 미리 할당해 놓은 수를 지정, NOCACHE는 미리 생성하지 않도록 설정, 옵션을 모두 생략하면 기본값은 20(선택)|
+
+- DEPT 테이블을 사용하여 DEPT_SEQUENCE 테이블 생성하기
+
+```
+CREATE TABLE DEPT_SEQUENCE
+	AS SELECT * FROM DEPT WHERE 1 <> 1;
+	
+SELECT * FROM DEPT_SEQUENCE;
+```
+
+- 기존의 DEPT 테이블에서 부서번호(DEPTNO)는 10으로 시작해서 10씩 증가합니다. 이와같이 번호가 매겨질 수 있도록 오른쪽과 같이 시퀀스를 생성합니니다. 
+
+```
+CREATE SEQUENCE SEQ_DEPT_SEQUENCE 
+	INCREMENT BY 10
+	START WITH 10 
+	MAXVALUE 90
+	MINVALUE 0 
+	NOCYCLE 
+	CACHE 2;
+```
+
+- 시퀀스 생성을 확인하기 위해 다음과 같이 USER_SEQUENCES 데이터 사전을 조회하여 확인하세요.
+
+```
+SELECT * FROM USER_SEQUENCES;
+```
+
+### 시퀀스 사용
+
+- 생성된 시퀀스를 사용할 때는 \[시퀀스 이름.CURRVAL\]과 \[시퀀스 이름.NEXTVAL\]을 사용할 수 있습니다. 
+- CURRVAL은 시퀀스에서 마지막으로 생성한 번호를 반환하여 NEXTVAL는 다음 번호를 생성합니다. 그리고 CURRVAL은 시퀀스를 생성하고 바로 사용하면 번호가 만들어진 적이 없으므로 오류가 납니다.
+- 먼저 SEQ_DEPT_SEQUENCE 시퀀스를 사용하여 DEPT_SEQUENCE 테이블에 새로운 부서를 추가하려면 다음과 같이 INSERT 문에 NEXTVAL을 사용합니다. 시작 값(START WITH)이 10이므로 부서 번호가 10으로 삽입됩니다. 
+
+- 시퀀스에서 생성한 순번을 사용한 INSERT문 실행하기
+
+```
+INSERT INTO DEPT_SEQUENCE (DEPTNO, DNAME, LOC)
+	VALUES (SEQ_DEPT_SEQUENCE.NEXTVAL, 'DATABASE', 'SEOUL');
+	
+SELECT * FROM DEPT_SEQUENCE ORDER BY DEPTNO;
+```
+
+- 가장 마지막으로 생성된 시퀀스 확인하기
+
+```
+SELECT SEQ_DEPT_SEQUENCE.CURRVAL FROM DUAL;
+```
+
+- 시퀀스에서 생성한 순번을 반복 사용하여 INSERT문 실행하기
+
+```
+INSERT INTO DEPT_SEQUENCE (DEPTNO, DNAME, LOC)
+	VALUES (SEQ_DEPT_SEQUENCE.NEXTVAL, 'DATABASE', 'SEOUL');
+	
+SELECT * FROM DEPT_SEQUENCE ORDER BY DEPTNO;
+```
+
+- INSERT문을 시퀀스의 NEXTVAL을 사용하여 부서 번호가 90번에 이를 때까지 실행합니다. 그 후 다시 실행하면 최대값(MAXVALUE)이 이미 생성되었고 NOCYCLE 옵션으로 순환되지 않도록 설정하였으므로 오류가 납니다.
+
+### 시퀀스 수정
+
+- ALTER 명령어로 시퀀스를 수정하고 DROP 명령어로 시퀀스를 삭제합니다.  시퀀스 수정은 다음과 같이 옵션을 재설정하는 데 사용합니다. 그리고 START WITH 값은 변경할 수 없습니다.
+
+```
+ALTER SEQUENCE 시퀀스 이름 
+[INCREMENT BY n]
+[MAXVALUE n | NOMAXVALUE]
+[MINVALUE n | NOMINVALUE]
+[CYCLE | NOCYCLE]
+[CACHE n | NOCACHE]
+```
+
+- 앞서 생성한 시퀀스인 SEQ_DEPT_SEQUENCE의 최대값(MAXVALUE)를 99, 증가 값(INCREMENT BY)을 3, 그리고 NOCYCLE 대신 CYCLE 옵션을 주어 다음과 같이 수정해 봅시다.
+
+```
+ALTER SEQUENCE SEQ_DEPT_SEQUENCE 
+   INCREMENT BY 3 
+   MAXVALUE 99 
+   CYCLE;
+```
+
+- 옵션을 수정한 시퀀스 조회하기
+
+```
+SELECT * FROM USER_SEQUENCES;
+```
+
+- 수정한 시퀀스를 사용하여 INSERT문 실행하기
+
+```
+INSERT INTO DEPT_SEQUENCE (DEPTNO, DNAME, LOC)
+VALUES (SEQ_DEPT_SEQUENCE.NEXTVAL, 'DATABASE', 'SEOUL');
+   
+SELECT * FROM DEPT_SEQUENCE ORDER BY DEPTNO;
+```
+
+- INSERT문을 몇 번 더 반복 실행하면 96, 99(MAXVALUE) 번호가 생성된 후 CYCLE 옵션으로 인해 최솟값(MAXVALUE)이 0에서 다시 3씩 증가되는 것을 확인할 수 있습니다.
+
+- CYCLE 옵션을 사용한 시퀀스의 최댓값 도달 후 수행 결과 확인하기
+
+```
+INSERT INTO DEPT_SEQUENCE (DEPTNO, DNAME, LOC)
+VALUES (SEQ_DEPT_SEQUENCE.NEXTVAL, 'DATABASE', 'SEOUL');
+
+SELECT * FROM DEPT_SEQUENCE ORDER BY DEPTNO;
+```
+
+### 시퀀스 삭제
+
+- DROP SEQUENCE를 사용하면 시퀀스를 삭제할 수 있습니다. 
+
+```
+DROP SEQUENCE SEQ_DEPT_SEQUENCE;
+
+SELECT * FROM USER_SEQUENCES;
+```
+
+* * * 
+## 공식 별칭을 지정하는 동의어
+
+### 동의어란?
+
+- 동의어(synonym)는 테이블-뷰-시퀀스 등 객체 이름 대신 사용할 수 있는 다른 이름을 부여하는 객체입니다. 
+- 주로 테이블 이름이 너무 길어 사용이 불편할 때 좀 더 간단하고 짧은 이름을 하나 더 만들어 주기 위해 사용합니다.
+
+```
+CREATE [PUBLIC - (1)] SYNONYM 동의어 이름 - (2)
+FOR [(3)사용자.][객체 이름 - (4)];
+```
+
+|요소|설명|
+|----|-------|
+|(1) PUBLIC|동의어를 데이터베이스 내 모든 사용자가 사용할 수 있도록 설정, 생략할 경우 동의어를 생성한 사용자만 사용 가능(PUBLIC으로 생성되어도 본래 객체의 사용 권한이 있어야 사용 가능)(선택)|
+|(2) 동의어 이름|생성할 동의어 이름(필수)|
+|(3) 사용자|생성할 동의어의 본래 객체 소유 사용자를 지정. 생략할 경우 현재 접속한 사용자로 지정(선택)|
+|(4) 객체이름|동의어를 생성할 대상 객체 이름(필수)|
+
+- 생성한 동의어는 SELECT, INSERT, UPDATE, DELETE 등 다양한 SQL문에서 사용할 수 있습니다.
+
+- 동의어는 SELECT문의 SELECT절, FROM절에서 사용한 열 또는 테이블 별칭과 유사하지만 오라클 데이터베이스에 저장되는 객체이기 때문에 일회성이 아니라는 점에서 차이가 납니다. 
+- 동의어 생성 역시 권한을 따로 부여해야 하기 때문에 다음과 같이 SQL\*PLUS에서 SYSTEM에 접속하여 SCOTT 계정에 동의어 생성 권한을 부여해야 합니다.  PUBLIC SYNONYM 권한도 따로 부여해 주어야 합니다.
+
+- 권한 부여하기(SQL\*PLUS)
+
+```
+SQLPLUS SYSTEM/oracle
+
+GRANT CREATE SYNONYM TO SCOTT;
+
+GRANT CREATE PUBLIC SYNONYM TO SCOTT;
+```
+
+### 동의어 생성
+
+- EMP 테이블의 동의어 생성하기
+
+```
+CREATE SYNONYM E 
+	FOR EMP;
+```
+
+- E 테이블 전체 내용 조회하기
+
+```
+SELECT * FROM E;
+```
+
+### 동의어 삭제
+
+```
+DROP SYNONYM E;
+```
+
+- 동의어를 삭제하면 E 동의어로 SELECT를 할 수 없지만 EMP 테이블 이름과 데이터는 아무 영향을 주지 않습니다.
