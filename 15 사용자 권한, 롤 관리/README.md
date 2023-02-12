@@ -239,3 +239,169 @@ GRANT [시스템 권한 - (1)] TO [사용자 이름/롤(ROLE)이름/PUBLIC - (2)
 | WITH ADMIN OPTION을 사용하면 부여받은 권한을 다른 사용자에게 부여할 수 있게 됩니다.
 
 
+- SYSTEM 계정으로 접속하여 사용자(ORCLSTUDY) 생성하기(SQL\*PLUS)
+
+```
+CREATE USER ORCLSTUDY IDENTIFIED BY ORACLE;
+```
+
+- 사용자 권한 부여하기(SQL\*PLUS)
+
+```
+GRANT RESOURCE, CREATE SESSION, CREATE TABLE TO ORCLSTUDY;
+```
+
+- ORCLSTUDY 사용자로 데이터베이스 접속과 테이블 생성이 가능해졌습니다. ORCLSTUDY 소유 테이블을 생성했으므로 INSERT, SELECT문을 사용할 수 있습니다.
+
+```
+CONN ORCLSTUDY/ORACLE
+
+CREATE TABLE TEMP1 (
+	COL1 VARCHAR2(20),
+	COL2 VARCHAR2(20)
+);
+
+INSERT INTO TEMPS VALUES ('USER', 'GRANT TEST');
+
+SELECT * FROM TEMP1;
+```
+
+### GRANT에 사용된 RESOURCE 키워드
+
+- RESOURCE는 오라클 데이터베이스에서 제공하는 롤(role) 중 하나입니다. 롤은 여러 권한을 하나의 이름으로 묶어 권한 부여 관련 작업을 간편하게 하려고 사용합니다. 
+- 만약 GRANT문에 RESOURCE를 지정하지 않는다면, ORCLSTUDY 사용자에게 테이블 생성 권한을 부여해도 CREATE문으로 테이블을 생성할 수 없거나 테이블이 생성되더라도 INSERT문에서 다음과 같은 오류 메세지 출력하며 동작하지 않는 경우가 발생합니다. 
+
+```
+ORA-01950: 테이블 스페이스 USERS 권한이 없습니다.
+```
+
+- 오류 메시지에서 테이블 스페이스는 테이블이 저장되는 공간을 의미하며 따로 지정하지 않으면 기본 테이블 스페이스 USERS가 할당 됩니다. 위 오류는 이 테이블 스페이스의 사용 영역을 정하지 않아 발생하는 오류 입니다. 
+- RESOURCE 롤에는 사용자를 생성할 때 사용 테이블 스페이스의 영역을 무제한 사용 가능(UNLIMITED TABLESPACE)하게 해 주는 권한이 포함되어 있기 때문에 RESOURCE 롤을 GRANT문에 추가하면 별 문제 없이 사용자가 테이블을 생성하고 신규 데이터를 저장할 수 있습니다.
+- 하지만 테이블 스페이스의 영역 사용에 한계를 두지 않는 UNLIMITED TABLESPACE 권한은 엄일한 관리가 필요한 경우에 적절하지 않으므로 사용자를 생성 및 수정할 때 QUOTA절로 사용 영역에 제한을 두기도 합니다.
+
+```
+ALTER USER ORCLSTUDY QUOTA 2M ON USERS;
+```
+
+### 시스템 권한 취소
+
+- GRANT 명령어로 부여한 권한의 취소는 REVOKE 명령어를 사용합니다.
+
+```
+REVOKE [시스템 권한] FROM [사용자 이름/롤(Role)이름/PUBLIC];
+```
+
+- REVOKE문을 사용하여 ORCLSTUDY 사용자의 RESOURCE, CREATE TABLE 권한을 취소합니다.
+
+```
+CONN SYSTEM/_aA123456
+
+REVOKE RESOURCE, CREATE TABLE FROM ORCLSTUDY;
+```
+
+- 권한이 취소된 ORCLSTUDY 사용자는 더 이상 테이블을 생성할 수 없습니다.
+
+### 객체 권한이란?
+
+- 객체 권한(object privilege)은 특정 사용자가 생성한 테이블,인덱스,뷰,시퀀스 등과 관련된 권한입니다.
+- 예를 들어 SCOTT 소유 테이블에 ORCLSTUDY 사용자가 SELECT나 INSERT 등의 작업이 가능하도록 허용할 수 있습니다.
+
+<table>
+	<thead>
+		<tr>
+			<th>객체 권한 분류</th>
+			<th>객체 권한</th>
+			<th>설명</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td rowspan='7'>TABLE(테이블)</td>
+			<td>ALTER</td>
+			<td>테이블 변경 권한</td>
+		</tr>
+		<tr>
+			<td>DELETE</td>
+			<td>테이블 데이터 삭제 권한</td>
+		</tr>
+		<tr>
+			<td>INDEX</td>
+			<td>테이블 인덱스 생성 권한</td>
+		</tr>
+		<tr>
+			<td>INSERT</td>
+			<td>테이블 데이터 삽입 권한</td>
+		</tr>
+		<tr>
+			<td>REFERENCES</td>
+			<td>참조 데이터 삽입 권한</td>
+		</tr>
+		<tr>
+			<td>SELECT</td>
+			<td>테이블 조회 권한</td>
+		</tr>
+		<tr>
+			<td>UPDATE</td>
+			<td>테이블 데이터 수정 권한</td>
+		</tr>
+		<tr>
+			<td rowspan='5'>VIEW(뷰)</td>
+			<td>DELETE</td>
+			<td>뷰 데이터 삭제 권한</td>
+		</tr>
+		<tr>
+			<td>INSERT</td>
+			<td>뷰 데이터 삽입 권한</td>
+		</tr>
+		<tr>
+			<td>REFERENCES</td>
+			<td>참조 데이터 생성 권한</td>
+		</tr>
+		<tr>
+			<td>SELECT</td>
+			<td>뷰 조회 권한</td>
+		</tr>
+		<tr>
+			<td>UPDATE</td>
+			<td>뷰 데이터 수정 권한</td>
+		</tr>
+		<tr>
+			<td rowspan='2'>SEQUENCE(시퀀스)</td>
+			<td>ALTER</td>
+			<td>시퀀스 수정 권한</td>
+		</tr>
+		<tr>
+			<td>SELECT</td>
+			<td>시퀀스의 CURRVAL과 NEXTVAL 사용 권한</td>
+		</tr>
+		<tr>
+			<td>PROCEDURE(프로시저)</td>
+			<td>(생략)</td>
+			<td>프로시저 관련 권한</td>
+		</tr>
+		<tr>
+			<td>FUNCTION(함수)</td>
+			<td>(생략)</td>
+			<td>함수 관련 권한</td>
+		</tr>
+		<tr>
+			<td>PACKAGE(패키지)</td>
+			<td>(생략)</td>
+			<td>패키지 관련 권한</td>
+		</tr>
+	</tbody>
+</table>
+
+
+### 객체 권한 부여
+- 객체 권한 부여 역시 GRANT문을 사용합니다.
+
+```
+GRANT [객체 권한/ALL PRIVILEGES] - (1) 
+	ON [스키마.객체 이름] - (2)
+	TO [사용자 이름/롤(Role)이름/PUBLIC] - (3)
+	[WITH GRANT OPTION]; - (4)
+```
+
+|번호|설명|
+|----|------|
