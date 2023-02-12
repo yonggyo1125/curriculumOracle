@@ -90,6 +90,7 @@ COMMIT;
 - DEPT_TCL 테이블을 활용하여 세션 A, B에서 모두 DEPT_TCL 테이블을 조회합니다.
 
 - dbweaver와 SQL\*PLUS로 세션 알아보기
+
 |세션 A(dbweaver)|세션 B(SQL\*PLUS)|
 |----|----|
 |SELECT \* FROM DEPT_TCL; - (1)|SELECT \* FROM DEPT_TCL; - (2)|
