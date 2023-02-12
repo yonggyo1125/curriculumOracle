@@ -16,3 +16,226 @@
 
 ### 사용자 생성
 
+- 오라클 사용자를 생성할 때는 CREATE USER문을 사용합니다. 다음과 같이 CREATE USER 명령어에는 사용할 수 있는 옵션이 여러가지 있습니다. 기본적으로 사용자 이름과 패스워드만 지정해 주면 사용자를 생성할 수 있습니다.
+
+```
+CREATE USER 사용자 이름(필수) 
+IDENTIFIED BY 패스워드(필수)
+DEFAULT TABLESPACE 테이블 스페이스 이름(선택)
+TEMPORARY TABLESPACE 테이블 스페이스(그룹) 이름(선택)
+QUOTA 테이블 스페이스크기 ON 테이블 스페이스 이름(선택)
+PROFILE 프로파일 이름(선택)
+PASSWORD EXPIRE(선택)
+ACCOUNT [LOCK/UNLOCK](선택);
+```
+
+- 다음 명령어는 SCOTT 계정으로 접속한 상태에서는 실행되지 않습니다. 사용자를 생성할 권한이 없기 때문입니다.
+
+```
+CREATE USER ORCLSTUDY
+IDENTIFIED BY ORACLE;
+```
+
+- 사용자 생성은 일반적으로 데이터베이스 관리 권한을 가진 사용자가 권한을 가지고 있습니다. 오라클 데이터베이스를 설치할 때 자동으로 생성된 SYS, SYSTEM이 데이터베이스 관리 권한을 가진 사용자입니다.
+
+- 여기에서는 SQL\*PLUS를 통해 SYSTEM 사용자로 접속한 후 CREATE USER 다시 실행합니다.
+
+- SYSTEM 사용자로 접속 후 사용자 생성하기(SQL\*PLUS)
+
+```
+CREATE USER ORCLSTUDY IDENTIFIED BY ORACLE;
+```
+
+- 하지만 CONN 명령어를 사용해 새로 생성한 ORCLSTUDY 사용자로 접속을 시도하면 접속이 되지 않습니다. 이는 사용자가 생성되긴 했지만 데이터베이스 연결을 위한 권한, 즉 CREATE SESSION 권한을 부여받지 못했기 때문입니다.
+
+```
+CONN ORCLSTUDY/ORACLE
+```
+
+- SYSTEM 사용자로 접속 후 ORCLSTUDY 사용자에게 권한 부여하기
+
+```
+GRANT CREATE SESSION TO ORCLSTUDY;
+```
+
+- 이제 ORCLSTUDY 사용자로 다음과 같이 데이터베이스에 접속할 수 있습니다. 
+
+```
+CONN ORCLSTUDY/ORACLE
+```
+
+- ORCLSTUDY 사용자가 SCOTT 계정처럼 테이블을 만들고 데이터를 사용하려면 몇몇 권한이 더 필요합니다. 
+
+
+### 사용자 정보 조회
+
+- 사용자 또는 사용자 소유 객체 정보를 얻기 위해 다음과 같이 데이터 사전을 사용할 수 있습니다.
+
+```
+SELECT * FROM ALL_USERS WHERE USERNAME = 'ORCLSTUDY';
+```
+
+```
+SELECT * FROM DBA_USERS WHERE USERNAME = 'ORCLSTUDY';
+```
+
+```
+SELECT * FROM DBA_OBJECTS WHERE OWNER OWNER = 'ORCLSTUDY';
+```
+
+
+### 오라클 사용자의 변경과 삭제
+
+- 사용자 정보를 변경할 때에는 ALTER USER문을 사용합니다. 
+
+```
+CONN SYSTEM/_aA123456
+
+ALTER USER ORCLSTUDY IDENTIFIED BY ORCL;
+```
+
+- DROP USER문을 사용하여 사용자를 삭제합니다.
+
+```
+DROP USER ORCLSTUDY;
+```
+
+- 오라클 사용자와 객체 모두 삭제<br>사용자 스키마에 객체가 있을 경우에 CASCADE 옵션을 사용하여 사용자와 객체를 모두 삭제할 수 있습니다.
+
+```
+DROP USER ORCLSTUDY CASCADE
+```
+
+* * * 
+## 권한 관리하기
+
+- 특정 사용자 정보를 통해 데이터베이스에 접속하는 것만으로 데이터베이스의 모든 데이터를 사용할 수 있다면 여전히 데이터 안전을 보장하기는 어려울 것입니다. 따라서 데이터베이스는 접속 사용자에 따라 접근할 수 있는 데이터 영역과 권한을 지정해 줄 수 있습니다. 
+- 오라클에서는 권한을 시스템 권한(system privilege)과 객체 권한(object privilege)으로 분류하고 있습니다.
+
+### 시스템 권한
+- 오라클 데이터베이스의 시스템 권한(system privilege)은 사용자 생성과 정보 수정 및 삭제, 데이터베시의 접근, 오라클 데이터베이스의 여러 자원과 객체 생성 및 관리 등의 권한을 포함합니다.
+- 이러한 내용은 데이터베이스의 관리 권한이 있는 사용자가 부여할 수 있는 권한입니다.
+- 시스템 권한에서 AN 키워드가 들어가 있는 권한은 소유자 ANY 키워드가 들어 있는 권한은 소유자에 상관없이 사용 가능한 권한을 의미합니다.
+
+<table>
+	<thead>
+		<tr>
+			<th>시스템 권한분류</th>
+			<th>시스템 권한</th>
+			<th>설명</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td rowspan='3'>USER(사용자)</td>
+			<td>CREATE USER</td>
+			<td>사용자 생성 권한</td>
+		</tr>
+		<tr>
+			<td>ALTER USER</td>
+			<td>생성된 사용자 정보 수정 권한</td>
+		</tr>
+		<tr>
+			<td>DROP USER</td>
+			<td>생성된 사용자의 삭제 권한</td>
+		</tr>
+		<tr>
+			<td rowspan='2'>SESSION(접속)</td>
+			<td>CREATE SESSION</td>
+			<td>데이터베이스 접속 권한</td>
+		</tr>
+		<tr>
+			<td>ALTER SESSION</td>
+			<td>데이터베이스 접속 상태에서 환경 값 변경 권한</td>
+		</tr>
+		<tr>
+			<td rowspan='8'>TABLE(테이블)</td>
+			<td>CREATE TABLE</td>
+			<td>자신의 테이블 생성 권한</td>
+		</tr>
+		<tr>
+			<td>CREAT ANY TABLE</td>
+			<td>임의의 스키마 소유 테이블 생성 권한</td>
+		</tr>
+		<tr>
+			<td>ALTER ANY TABLE</td>
+			<td>임의의 스키마 테이블 수정 권한</td>
+		</tr>
+		<tr>
+			<td>DROP ANY TABLE</td>
+			<td>임의의 스키마 소유 테이블 삭제 권한</td>
+		</tr>
+		<tr>
+			<td>INSERT ANY TABLE</td>
+			<td>임의의 스키마 소유 테이블 데이터 삽입 권한</td>
+		</tr>
+		<tr>
+			<td>UPDATE ANY TABLE</td>
+			<td>임의의 스키마 소유 테이블 수정 권한</td>
+		</tr>
+		<tr>
+			<td>DELETE ANY TABLE</td>
+			<td>임의의 스키마 소유 테이블 데이터 삭제 권한</td>
+		</tr>
+		<tr>
+			<td>SELECT ANY TABLE</td>
+			<td>임의의 스키마 소유 테이블 데이터 조회 권한</td>
+		</tr>
+		<tr>
+			<td rowspan='3'>INDEX(인덱스)</td>
+			<td>CREATE ANY INDEX</td>
+			<td>임의의 스키마 소유 테이블의 인덱스 생성 권한</td>
+		</tr>
+		<tr>
+			<td>ALTER ANY INDEX</td>
+			<td>임의의 스키마 소유 테이블의 인덱스 생성 권한</td>
+		</tr>
+		<tr>
+			<td>DROP ANY INDEX</td>
+			<td>임의의 스키마 소유 테이블의 인덱스 수정 권한</td>
+		</tr>
+		<tr>
+			<td>VIEW(뷰)</td>
+			<td></td>
+			<td>뷰와 관련된 여러 권한</td>
+		</tr>
+		<tr>
+			<td>SEQUENCE(시퀀스)</td>
+			<td></td>
+			<td>시퀀스와 관련된 여러 권한</td>
+		</tr>
+		<tr>
+			<td>SYNONYM(동의어)</td>
+			<td></td>
+			<td>동의어와 관련된 여러 권한</td>
+		</tr>
+		<tr>
+			<td>PROFILE(프로파일)</td>
+			<td></td>
+			<td>사용자 접속 조건 지정과 관련된 여러 권한</td>
+		</tr>
+		<tr>
+			<td>ROLE(롤)</td>
+			<td></td>
+			<td>권한을 묶은 그룹과 관련된 여러 권한</td>
+		</tr>
+	</tbody>
+</table>	
+
+### 시스텀 권한 부여
+
+- 시스템 권한을 부여할 때 다음과 같이 GRANT문을 사용합니다.
+
+```
+GRANT [시스템 권한 - (1)] TO [사용자 이름/롤(ROLE)이름/PUBLIC - (2)] [WITH ADMIN OPTION - (3)];
+```
+
+|번호|설명|
+|----|-------|
+|(1)|오라클 데이터베이스에서 제공하는 시스템 권한을 지정합니다. 한 번에 여러 종류의 권한을 부여하려면 쉼표(,)로 구분하여 권한 이름을 여러 개 명시해 주면 됩니다(필수).|
+|(2)|권한을 부여하려는 대상을 지정합니다. 사용자 이름을 지정해 줄 수도 있고, 이후 소개할 롤(role)을 지정할 수도 있습니다.  여러 사용자 또는 롤에 적용할 경우 쉼표(,)로 구분합니다. PUBLIC은 현재 오라클 데이터베이스의 모든 사용자에게 권한을 부여하겠다는 의미입니다(필수).|
+|(3)|WITH ADMIN OPTION은 현재 GRANT문을 통해 부여받은 권한을 다른 사용자에게 부여할 수 있는 권한도 함께 부여받습니다. 현재 사용자가 권한이 사라져도, 권한을 재부여한 다른 사용자의 권한은 유지됩니다(선택).|
+
+|WITH ADMIN OPTION을 사용하면 부여받은 권한을 다른 사용자에게 부여할 수 있게 됩니다.
+
+
