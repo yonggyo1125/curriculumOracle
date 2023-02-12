@@ -405,3 +405,172 @@ GRANT [객체 권한/ALL PRIVILEGES] - (1)
 
 |번호|설명|
 |----|------|
+|(1)|오라클 데이터베이스에서 제공하는 객체권한을 지정합니다. 한 번에 여러 종류의 권한을 부여하려면 쉼표(,)를 구분하여 여러개 명시해 주면 됩니다. ALL PRIVILEGES는 객체의 모든 권한을 부여함을 의미합니다(필수).|
+|(2)|권한을 부여할 대상 객체를 명시합니다(필수).|
+|(3)|권한을 부여하려는 대상을 지정합니다. 사용자의 이름을 지정해 줄 수도 있고 이후 소개할 롤(role)을 지정할 수도 있습니다. 여러 사용자 또는 롤에 적용할 경우 쉼표(,)로 구분합니다. PUBLIC은 현재 오라클 데이터베이스의 모든 사용자에게 권한을 부여하겠다는 의미입니다(필수).|
+|(4)|WITH GRANT OPTION은 현재 GRANT문을 통해 부여받은 권한을 다른 사용자에게 부여할 수 있는 권한도 함께 부여받습니다. 현재 권한을 부여받은 사용자의 권한이 사라지면, 다른 사용자에게 재부여된 권한도 함께 사라집니다(선택).|
+
+- ORCLSTUDY 사용자에게 TEMP 테이블 권한 부여하기
+
+```
+CONN SCOTT/tiger
+
+CREATE TABLE TEMP(
+	COL1 VARCHAR(20),
+	COL2 VARCHAR(20)
+);
+
+GRANT SELECT ON TEMP TO ORCLSTUDY;
+
+GRANT INSERT ON TEMP TO ORCLSTUDY;
+```
+
+- ORCL에게 TEMP 테이블의 여러 권한을 한 번에 부여하기
+
+```
+GRANT SELECT, INSERT ON TEMP TO ORCLSTUDY;
+```
+
+- ORCLSTUDY로 사용 권한을 부여받은 TEMP 테이블 사용하기
+
+```
+CONN ORCLSTUDY/ORACLE
+
+SELECT * FROM SCOTT.TEMP;
+
+INSERT INTO SCOTT.TEMP VALUS ('TEXT', 'FROM ORACLSTUDY');
+
+SELECT * FROM SCOTT.TEMP;
+```
+
+- ORCLSTUDY 사용자의 소유는 아니지만 SCOTT 계정의 TEMP 테이블을 조회하고 INSERT도 가능해졌습니다.
+
+### 객체 권한 취소
+
+-  객체 권한 취소는 REVOKE 문을 사용합니다.
+
+```
+REVOKE [객체 권한/ALL PRIVILEGES](필수)
+      ON [스키마.객체 이름](필수)
+   FROM [사용자 이름/롤(Role) 이름/PUBLIC](필수)
+[CASCADE CONSTRAINTS/FORCE](선택);   
+```
+
+- ORCLSTUDY에 부여된 TEMP 테이블 사용 권한 취소하기
+
+```
+CONN SCOTT/tiger
+
+REVOKE SELECT, INSERT ON TEMP FROM ORCLSTUDY;
+```
+
+- REVOKE로 권한을 취소하면 ORCLSTUDY 사용자는 더 이상 SCOTT 계정의 TEMP 테이블을 사용할 수 없습니다.
+
+- ORCLSTUDY로 권한 철회된 TEMP 테이블 조회하기(실패)
+
+```
+CONN ORCLSTUDY/ORACLE
+
+SELECT * FROM SCOTT.TEMP;
+```
+
+### 요약 
+
+- 오라클에서는 새로운 사용자를 생성하기 위해 CREATE USER문을 사용합니다. 생성된 계정에는 여러 가지 권한을 부여할 수 있습니다. 권한을 부여하기 위해서 사용하는 명령어는 GRANT이며, 부여된 권한을 취소하기 위해서는  REVOKE 명령어를 사용합니다.
+
+* * * 
+## 롤 관리
+
+- 사용자는 데이터베이스에서 어떤 작업을 진행하기 위해 해당 작업과 관련된 권한을 반드시 부여받아야 합니다.
+- 하지만 신규 생성 사용자는 아무런 권한이 없으므로 오라클 데이터베이스에서 제공하는 다양한 권한을 일일히 부여해 주어야 합니다. 이러한 불편한 점을 해결하기 위해 롤을 사용합니다. 
+- 롤은 여러 종류의 권한을 묶어 놓은 그룹을 뜻합니다. 롤을 사용하면 여러 권한을 한 번에 부여하고 해제할 수 있스므로 권한 관리의 효율을 높일 수 있습니다.
+
+- 롤은 오라클 데이터베이스를 설치할 때 기본으로 제공되는 사전 정의된 롤(predefined roles)과 사용자 정의 롤(user roles)로 나뉩니다.
+
+### 사전 정의된 롤
+
+#### CONNECT 롤
+
+- 사용자가 데이터베이스에 접속하는 데 필요한 CREATE SESSION 권한을 가지고 있습니다.
+
+```
+ALTER SESSION, CREATE CLUSTER, CREATE DATABASE LINK, CREATE SEQUENCE, CREATE SESSION, CREATE SYNONYM, CREATE TABLE, CREATE VIEW
+```
+
+#### RESOURCE 롤
+
+- 사용자가 테이블, 시퀀스를 비롯한 여러 객체를 생성할 수 있는 기본 시스템 권한을 묶어 놓은 롤입니다.
+
+```
+CREATE TRIGGER, CREATE SEQUENCE, CREATE TYPE, CREATE PROCEDURE, CREATE CLUSTER, CREATE OPERATOR, CREATE INDEXTYPE, CREATE TABLE
+```
+
+- 보통 새로운 사용자를 생성하면 CONNECT롤과 RESOURCE롤을 부여하는 경우가 많습니다. CONNECT 롤에서 뷰를 생성하는 CREATE VIEW 권한과 동의어를 생성하는 CREATE SYNONYM 권한이 제외되었기 때문에 뷰와 동의어 생성 권한을 사용자에게 부여하려면 이 두 권한을 따로 부여해 주어야 합니다.
+
+#### DBA 롤
+
+- 데이터베이스를 관리하는 시스템 권한을 대부분 가지고 있습니다. 오라클 11g 버전 기준 202개 권한을 가진 매우 강력한 롤입니다. 그 밖에도 사전 정의된 롤은 여러 종류가 있습니다.
+
+
+### 사용자 정의 롤
+
+- 사용자 정의 롤은 필요에 의해 직접 권한을 포함시킨 롤을 뜻합니다. 
+- 다음 절차를 따라 롤을 생성해서 사용할 수 있습니다.
+	- (1) CREATE ROLE문으로 롤을 생성합니다.
+	- (2) GRANT 명령어로 생성한 롤에 권한을 포함시킵니다.
+	- (3) GRANT 명령어로 권한이 포함된 롤을 특정 사용자에게 부여합니다.
+	- (4) REVOKE 명령어로 롤을 취소시킵니다.
+	
+
+#### 롤 생성과 권한 포함
+
+- 롤을 생성하려면 데이터 관리 권한이 있는 사용자가 필요하므로 SYSTEM 계정으로 접속하여 ROLESTUDY 롤을 생성하겠습니다. 롤을 생성한 후 GRANT 명령어로 권한을 포함시킬 수 있습니다.
+- ROLESTUDY 롤에는 CONNECT 롤, RESOURCE 롤 그리고 뷰와 동의어 생성을 위한 CREATE VIEW, CREATE SYNONYM 권한이 포함되어 있습니다. 
+
+- SYSTEM 계정으로 ROLESTUDY 롤 생성 및 권한 부여하기
+
+```
+CONN SYSTEM/_aA123456
+
+CREATE ROLE ROLESTUDY;
+
+GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE SYNONYM TO ROLESTUDY;
+```
+
+- ORCLSTUDY 사용자에게 롤(ROLESTUDY) 부여하기
+
+```
+GRANT ROLESTUDY TO ORCLSTUDY;
+```
+
+#### 부여된 롤과 권한 확인
+
+- ORCLSTUDY 사용자에 현재 부여된 권한과 롤을 확인하려면 USER_SYS_PRIVS, USER_ROLE_PRIVS 데이터 사전을 사용하면 됩니다. 데이터 관리 권한을 가진 계정은 DBA_SYS_PRIVIS, DBA_ROLE_PRIVIS를 사용해도 됩니다.
+
+- ORCLSTUDY에 부여된 롤과 권한 확인하기
+
+```
+CONN ORCLSTUDY/aA123456
+SELECT * FROM USER_SYS_PRIVIS;
+SELECT * FROM USER_ROLE_PRIVIS;
+```
+
+| DBA_ROLE_PRVIS와 DBA_SYS_PRIVIS 데이터 사전을 조회하려면 \[WHERE GRANTEE = 'ORCLSTUDY'\] 조건을 사용하세요.
+
+#### 부여된 롤 취소
+
+- GRANT명령어로 부여한 ROLE을 취소할 때 REVOKE 문을 사용합니다.
+
+```
+CONN SYSTEM/_aA123456
+
+REVOKE ROLESTUDY FROM ORCLSTUDY;
+```
+
+#### 롤 삭제
+
+- 롤 삭제는 DROP 명령어를 사용합니다. 롤을 삭제하면 해당 롤을 부여받은 모든 사용자의 롤이 취소(REVOKE)됩니다.
+
+```
+DROP ROLE ROLESTUDY;
+```
