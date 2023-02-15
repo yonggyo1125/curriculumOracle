@@ -423,3 +423,131 @@ SELECT EMPNO,
 WHERE ADD_MONTHS(HIREDATE, 384) > SYSDATE;
 ```
 
+### 두 날짜 간의 개월 수 차이를 구하는 MONTHS_BETWEEN 함수 
+
+```  
+MONTHS_BETWEEN([날짜 데이터1(필수)], [날짜 데이터2(필수)]) - (1)
+```
+
+|연산|설명|
+|----|-------|
+|(1)|두 날짜 데이터 간의 날짜 차이를 개월 수로 계산하여 출력합니다.|
+
+- HIREDATE와 SYSDATE 사이의 개월 수를 MONTHS_BETWEEN 함수로 출력하기
+
+```
+SELECT EMPNO, ENAME, HIREDATE, SYSDATE, 
+	MONTHS_BETWEEN(HIREDATE, SYSDATE) AS MONTHS1,
+	MONTHS_BETWEEN(SYSDATE, HIREDATE) AS MONTHS2,
+	TRUNC(MONTHS_BETWEEN(SYSDATE, HIREDATE)) AS MONTHS3
+FROM DUAL;
+```
+
+### 돌아오는 요일, 달의 마지막 날짜를 구하는 NEXT_DAY, LAST_DAY 함수
+
+- NEXT_DAY 함수의 기본 사용법
+
+```
+NEXT_DAY([날짜 데이터(필수)], [요일 문자(필수)]) - (1)
+```
+
+|연산|설명|
+|----|-------|
+|(1)|특정 날짜를 기준으로 돌아오는 요일의 날짜를 출력해 주는 함수입니다.|
+
+
+- LAST_DAY 함수의 기본 사용법
+
+```
+LAST_DAY([날짜 데이터(필수)]) - (1)
+```
+
+- NEXT_DAY, LAST_DAY 함수를 사용하여 출력하기
+
+```
+SELECT SYSDATE,
+	NEXT_DAY(SYSDATE, '월요일'),
+	LAST_DAY(SYSDATE)
+FROM DUAL;
+```
+
+### 날짜의 반올림, 버림을 하는 ROUND, TRUNC함수
+
+|입력 데이터 종류|사용 방식|
+|----|------|
+|숫자 데이터|ROUND(\[숫자(필수)\], \[반올림 위치\])|
+|숫자 데이터|TRUNC(\[숫자(필수)\], \[버림 위치\])|
+|날짜 데이터|ROUND(\[날짜데이터(필수)\], \[반올림 기준 포맷\])|
+|날짜 데이터|TRUNC(\[날짜 데이터(필수)\], \[버림 기준 포맷\])|
+
+|포맷 모델|기준 단위|
+|----|-----|
+|CC, SCC|네 자리 연도의 끝 두 자리를 기준으로 사용<br>(2016년이면 2050 이하이므로 반올림할 경우 2001년으로 처리)|
+|SYYYY, YYYY, YEAR, SYEAR, YYY, YY, Y|날짜 데이터의 해당 연,월,일의 7월 1일을 기준<br>(2016년 7월 1일 일 경우, 2017년으로 처리)|
+|IYYYY, IYY, IY, I|ISO 8601에서 제정한 날짜 기준년도 포맷을 기준|
+|Q|각 분기의 두 번째 달의 16일 기준|
+|MONTH, MON, MM, RM|각 달의 16일 기준|
+|WW|해당 연도의 몇 주(1~53번째 주)를 기준|
+|IW|ISO 8601에서 제정한 날짜 기준 해당 연도의 주(week)를 기준|
+|W|해당 월의 주(1~5번째 주)를 기준|
+|DDD,DD, J|해당 일의 정오(12:00:00)를 기준|
+|DAY, DY, D|한 주가 시작되는 날짜를 기준|
+|HH, HH12, HH24|해당일의 시간을 기준|
+|MI|해당일 시간의 분을 기준|
+
+- ROUND 함수 사용하여 날짜 데이터 출력하기
+
+```
+SELECT SYSDATE,
+	ROUND(SYSDATE, 'CC') AS FORMAT_CC,
+	ROUND(SYSDATE, 'YYYY') AS FORMAT_YYY,
+	ROUND(SYSDATE, 'Q') AS FORMAT_Q,
+	ROUND(SYSDATE, 'DDD') AS FORMAT_DDD,
+	ROUND(SYSDATE, 'HH') AS FORMAT_HH
+FROM DUAL;
+```
+
+- TRUNC 함수 사용하여 날짜 데이터 출력하기
+
+```
+SELECT SYSDATE,
+	TRUNC(SYSDATE, 'CC') AS FORMAT_CC,
+	TRUNC(SYSDATE, 'YYYY') AS FORMAT_YYY,
+	TRUNC(SYSDATE, 'Q') AS FORMAT_Q,
+	TRUNC(SYSDATE, 'DDD') AS FORMAT_DDD,
+	TRUNC(SYSDATE, 'HH') AS FORMAT_HH
+FROM DUAL;
+```
+
+* * * 
+## 자료형을 변환하는 형 변환 함수
+
+- 숫자와 문자열(숫자)을 더하여 출력하기
+
+```
+SELECT EMPNO, ENAME, EMPNO + '500'
+FROM EMP
+WHERE ENAME = 'SCOTT';
+```
+
+- 사원 번호 문자열인 500을 더한 결과는 사원 번호에 숫자 500을 더한 결과 값으로 출력됩니다. 작은 따옴표로 묶인 500은 분명 문자 데이터이지만 숫자 자료형인 사원 번호 열 값과 수치 연산이 가능했던 것은 '자동 형 변환'이라고 불리는 암시적 형변환(implicit type conversion)이 발생했기 때문입니다. 
+
+- 문자열(문자)과 숫자를 더하여 출력하기
+
+```
+SELECT 'ABCD' + EMPNO, EMPNO 
+FROM EMP 
+WHERE ENAME = 'SCOTT';
+```
+
+- 오류 발생 , 숫자처럼 생긴 문자 데이터는 숫자로 바꿔주지만 그 외의 경우는 잘 동작하지 않습니다.
+
+- 오라클에서 자료형이 자동으로 변환되는 방식이 아닌 사용자, 즉 자료형을 직접 지정해 주는 방식을 명시적 형 변환(explicit type conversion)이라고 합니다. 형 변환 함수를 사용하여 자료형을 변환해 주는 방식이 명시적 형 변환에 해당합니다.
+
+- 형 변환 함수
+
+|종류|설명|
+|----|-----|
+|TO_CHAR|숫자 또는 날짜 데이터를 문자 데이터로 변환|
+|TO_NUMBER|문자 데이터를 숫자 데이터로 변환|
+|TO_DATE|문자 데이터를 날짜 데이터로 변환|
