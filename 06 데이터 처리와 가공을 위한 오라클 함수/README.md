@@ -554,3 +554,173 @@ WHERE ENAME = 'SCOTT';
 
 
 ### 날짜, 숫자 데이터를 문자 데이터로 변환하는 TO_CHAR 함수
+
+- TO_CHAR 함수는 날짜, 숫자 데이터를 문자 데이터로 변환해 주는 함수입니다. 주로 날짜 데이터에서 문자 데이터로 변환하는 데 많이 사용하며 다음과 같이 작성합니다.
+
+```
+TO_CHAR([날짜데이터(필수)], '[출력되길 원하는 문자 형태(필수)]') - (1)
+```
+
+|번호|설명|
+|----|------|
+|(1)|날짜 데이터를 원하는 형태의 문자열로 출력합니다.|
+
+- SYSDATE 날짜 형식 지정하여 출력하기
+
+```
+SELECT TO_CHAR(SYSDATE, 'YYYY/MM/DD HH24:MI:SS') AS 현재날짜시간
+FROM DUAL;
+```
+
+- SELECT문에서 'YYYY/MM/DD HH24:MI:SS'는 날짜 데이터를 '연/월/일 시:분:초'로 표현하기 위해 사용하는 형식(fmt : format)입니다.
+- 자주 사용하는 날짜 표현 형식
+
+|형식|설명|
+|----|------|
+|CC|세기|
+|YYYY,RRRR|연(4자리 숫자)|
+|YY,RR|연(2자리 숫자)|
+|MM|월(2자리 숫자)|
+|MON|월(언어별 월 이름 약자)|
+|MONTH|월(언어별 월 이름 전체)|
+|DD|일(2자리 숫자)|
+|DDD|1년 중 며칠(1~366)|
+|DY|요일(언어별 요일 이름 약자)|
+|DAY|요일(언어별 요일 이름 전체)|
+|W|1년 중 몇 번째 주(1~53)|
+
+- 월과 요일을 다양한 형식으로 출력하기
+
+```
+SELECT SYSDATE,
+	TO_CHAR(SYSDATE, 'MM') AS MM,
+	TO_CHAR(SYSDATE, 'MM') AS MON,
+	TO_CHAR(SYSDATE, 'MONTH') AS MONTH,
+	TO_CHAR(SYSDATE, 'DD') AS DD,
+	TO_CHAR(SYSDATE, 'DY') AS DY,
+	TO_CHAR(SYSDATE, 'DAY') AS DAY
+FROM DUAL;
+```
+
+#### 특정 언어에 맞춰서 날짜 출력하기 
+- 특정 언어에 맞는 월, 요일 이름으로 출력하려면 다음과 같이 기존 TO_CHAR 함수에 날짜 출력 언어를 추가로 지정해 줄 수 있습니다.
+
+```
+TO_CHAR([날짜 데이터(필수)], '[출력되길 원하는 문자 형태(필수)]', 'NLS_DATE_LANGUAGE = language'(선택)) - (1)
+```
+
+|번호|설명|
+|----|-----|
+|(1)|날짜 데이터를 출력할 문자 형태를 지정하고 원하는 언어를 지정합니다.|
+
+- 여러 언어로 날짜(월) 출력하기
+
+```
+SELECT SYSDATE, 
+	TO_CHAR(SYSDATE, 'MM') AS MM,
+	TO_CHAR(SYSDATE, 'MON', 'NLS_DATE_LANGUAGE = KOREAN' ) AS MOM_KOR,
+	TO_CHAR(SYSDATE, 'MON', 'NLS_DATE_LANGUAGE = JAPANESE') AS MON_JPN,
+	TO_CHAR(SYSDATE, 'MON', 'NLS_DATE_LANGUAGE = ENGLISH') AS MON_ENG,
+	TO_CHAR(SYSDATE, 'MONTH', 'NLS_DATE_LANGUAGE = KOREAN') AS MONTH_KOR,
+	TO_CHAR(SYSDATE, 'MONTH', 'NLS_DATE_LANGUAGE = JAPANESE') AS MONTH_JPN,
+	TO_CHAR(SYSDATE, 'MONTH', 'NLS_DATE_LANGUAGE = ENGLISH') AS MONTH_ENG
+FROM DUAL;
+```
+
+- 여러 언어로 날짜(요일) 출력하기
+
+```
+SELECT SYSDATE, 
+	TO_CHAR(SYSDATE, 'MM') AS MM,
+	TO_CHAR(SYSDATE, 'DD') AS DD,
+	TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE = KOREAN' ) AS DY_KOR,
+	TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE = JAPANESE') AS DY_JPN,
+	TO_CHAR(SYSDATE, 'DY', 'NLS_DATE_LANGUAGE = ENGLISH') AS DY_ENG,
+	TO_CHAR(SYSDATE, 'DAY', 'NLS_DATE_LANGUAGE = KOREAN') AS DAY_KOR,
+	TO_CHAR(SYSDATE, 'DAY', 'NLS_DATE_LANGUAGE = JAPANESE') AS DAY_JPN,
+	TO_CHAR(SYSDATE, 'DAY', 'NLS_DATE_LANGUAGE = ENGLISH') AS DAY_ENG
+FROM DUAL;
+```
+
+- 연도를 표기하기 위해서는 YYYY, RRRR, YY, RR 형식을 사용합니다. Y를 사용하는 연도와 R을 사용하는 연도는 둘 다 기본적으로 연도를 표기하는 형식이지만, 두 자리로 연도를 출력할 때 1900년대 또는 2000년대로 상이하게 출력되는 현상이 발생할 수 있습니다.
+- 이 현상은 4자리 연도 형식에서는 발생하지 않고 대부분 업무에서 연도를 표현할 경우 4자리 형식을 사용하므로 참조하면 됩니다.
+
+- 시간 형식 지정하여 출력하기
+
+|형식|설명|
+|----|-----|
+|HH24|24시간으로 표현한 시간|
+|HH, HH12|12시간으로 표현한 시간|
+|MI|분|
+|SS|초|
+|AM, PM, A.M, P.M|오전, 오후 표시|
+
+- SYSDATE 시간 형식 지정하여 출력하기
+
+```
+SELECT SYSDATE,
+	TO_CHAR(SYSDATE, 'HH24:MI:SS') AS HH24MISS,
+	TO_CHAR(SYSDATE, 'MM12:MI:SS AM') AS HHMISS_AM,
+	TO_CHAR(SYSDATE, 'HH:MI:SS P.M.') AS HHMISS_PM
+FROM DUAL;
+```
+
+- TO_CHAR 함수로 숫자 데이터를 문자 데이터로 변환하는 방법
+
+|형식|설명|
+|----|------|
+|9|숫자의 한 자리를 의미함(빈 자리를 채우지 않음)|
+|0|빈 자리를 0으로 채움을 의미함|
+|$|달러($) 표시를 붙여서 출력함|
+|L|L(Locale) 지역 화폐 단위 기초를 붙여서 출력함|
+|.|소수점을 표시함|
+|,|천 단위의 구분 기호를 표시함|
+
+- 여러 가지 숫자 형식으로 사용하여 급여 출력하기
+
+```
+SELECT SAL,
+	TO_CHAR(SAL, '$999,999') AS SAL_$,
+	TO_CHAR(SAL, 'L999,999') AS SAL_L,
+	TO_CHAR(SAL, '999,999.00') AS SAL_1,
+	TO_CHAR(SAL, '000,999,999.00') AS SAL_2,
+	TO_CHAR(SAL, '000999999.99') AS SAL_3,
+	TO_CHAR(SAL, '999,999,00') AS SAL_4
+FROM EMP;
+```
+
+### 문자 데이터를 숫자 데이터로 변환하는 TO_NUMBER 함수
+
+- 문자 데이터와 숫자 데이터를 연산하여 출력하기
+
+```
+SELECT 1300 - '1500',
+	'1300' + 1500
+FROM DUAL;
+```
+
+- 문자 데이터끼리 연산하여 출력하기
+
+```
+SELECT '1,300' - '1,500' 
+FROM DUAL;
+```
+
+- 위 SELECT문은 연산이 수행되지 않습니다. 숫자 사이의 쉼표(,)가 들어가서 숫자로 변환이 되지 않기 때문입니다.
+
+- 숫자 데이터가 가공된 문자 데이터로 저장되어 있고 그 데이터를 산술 연산에 사용하고자 할 경우, 문자 데이터를 숫자 형태로 강제 인식시켜 주어야 합니다. 이때 사용하는 함수가 바로 TO_NUMBER 함수 입니다.
+
+```
+TO_NUMBER('[문자열 데이터(필수])]', '[인식할 숫자형태(필수)]) - (1)
+```
+
+|번호|설명|
+|----|------|
+|(1)|문자열을 지정한 형태의 숫자로 인식하여 숫자 데이터로 반환 합니다.|
+
+- TO_NUMBER 함수로 연산하여 출력하기
+
+```
+SELECT TO_NUMBER('1,300', '999,999') - TO_NUMBER('1,500', '999,999')
+FROM DUAL;
+```
