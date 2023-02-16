@@ -812,9 +812,47 @@ SELECT EMPNO, ENAME, COMM,
 FROM DUAL;
 ```
 
+* * * 
+## 상황에 따라 다른 데이터를 반환하는 DECODE 함수와 CASE문 
 
+### DECODE 함수
 
+```
+SELECT EMPNO, ENAME, JOB, SAL,
+	DECODE(JOB, 
+		'MANAGER', SAL*1.1,
+		'SALESMAN', SAL * 1.05,
+		'ANALYST', SAL,
+		SAL*1.03) AS UPSAL
+FROM EMP;
+```
 
+### CASE 문 
+
+- CASE문을 사용하여 출력하기
+
+```
+SELCT EMPNO, ENAME, JOB, SAL,
+	CASE JOB
+		WHEN 'MANAGER' THEN SAL * 1.1
+		WHEN 'SALESMAN' THEN SAL * 1.05
+		WHEN 'ANALYST' THEN SAL
+		ELSE SAL * 1.03
+	END AS UPSAL
+FROM EMP;
+```
+
+- 열에 따라서 출력 값이 달라지는 CASE문
+
+```
+SELECT EMPNO, ENAME, COMM, 
+	CASE 
+		WHEN COMM IS NULL THEN '해당사항 없음'
+		WHEN COMM = 0 THEN '수당없음'
+		WHEN COMM > 0 THEN '수당 : ' || COMM
+	END AS COMM_TEXT
+FROM EMP;
+```
 
 
 
