@@ -724,3 +724,55 @@ TO_NUMBER('[문자열 데이터(필수])]', '[인식할 숫자형태(필수)]) -
 SELECT TO_NUMBER('1,300', '999,999') - TO_NUMBER('1,500', '999,999')
 FROM DUAL;
 ```
+
+## 문자 데이터를 날짜 데이터로 변환하는 TO_DATE 함수 
+
+- TO_DATE 함수를 이용하면 문자열 데이터를 날짜 데이터로 변경할 수 있습니다.
+
+```
+TO_DATE('[문자열 데이터(필수)]', '[인식될 날짜형태(필수)]') - (1)
+```
+
+|번호|설명|
+|----|-----|
+|(1)|문자열 데이터를 날짜형의 데이터로 변환합니다.|
+
+
+- TO_DATE 함수로 문자 데이터를 날짜 데이터로 변환하기
+
+```
+SELECT TO_DATE('2018-07-14', 'YYYY-MM-DD') AS TODATE1, 
+	TO_DATE('20180714', 'YYYY-MM-DD') AS TODATE2
+FROM DUAL;
+```
+
+- 1981년 6월 1일 이후 입사한 사원 정보 출력하기
+
+```
+SELECT * 
+FROM EMP 
+WHERE HIREDATE > TO_DATE('1981/06/01', 'YYYY/MM/DD');
+```
+
+- 여러가지 형식으로 날짜 데이터 출력하기
+
+```
+SELECT TO_DATE('49/12/10', 'YY/MM/DD') AS YY_YEAR_49,
+	TO_DATE('49/12/10', 'RR/MM/DD') AS RR_YEAR_49,
+	TO_DATE('50/12/10', 'YY/MM/DD') AS YY_YEAR_50,
+	TO_DATE('50/12/10', 'RR/MM/DD') AS RR_YEAR_50,
+	TO_DATE('51/12/10', 'YY/MM/DD') AS YY_YEAR_51,
+	TO_DATE('51/12/10', 'RR/MM/DD') AS RR_YEAR_51
+FROM DUAL;
+```
+
+- 1950년을 기점으로 YY와 RR를 사용한 날짜가 각각 2050년, 1950년으로 다르게 인식됩니다. 이는 YY와 RR이 1900년대와 2000년대의 앞자리 수를 계산하는 방식이 달라서입니다.
+
+
+* * * 
+## NULL 처리 함수
+
+
+
+
+
