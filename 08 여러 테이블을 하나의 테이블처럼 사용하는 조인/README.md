@@ -116,3 +116,43 @@ WHERE E1.MGR = E2.EMPNO;
 
 ### 외부 조인
 
+- 조인 수행에서 조인 기준 열의 어느 한쪽이 NULL 이어도 강제로 출력하는 방식을 외부 조인(outer join)이라고 합니다.
+
+> 외부 조인을 사용하지 않는 등가, 자체 조인은 조인 조건에 해당하는 데이터가 존재할 경우에만 출력하기 때문에 외부 조인과 반대 의미로 '내부 조인(inner join)' 이라고 부릅니다. 외부 조인은 영문 그대로 '아우터 조인(outer join)'이라고 더 많이 부릅니다.
+
+- 외부 조인은 좌우를 따로 나누어 지정하는데 WHERE절에 조인 기준 열 중 한쪽에 (+) 기호를 붙여 줍니다.
+
+<table>
+	<tr>
+		<th>왼쪽 외부 조인(Left Outer Join)</th>
+		<td>WHERE TABLE1.COL1 = TABLE2.COL1(+)</td>
+	</tr>
+	<tr>
+		<th>오른쪽 외부 조인(Right Outer Join)</th>
+		<td>WHERE TABLE1.COL1(+) = TABLE2.COL1</td>
+	</tr>
+</table>
+
+- 왼쪽 외부 조인 사용하기
+
+```
+SELECT E1.EMPNO, E1.ENAMe, E1.MGR,
+	E2.EMPNO AS MGR_EMPNO,
+	E2.ENAME AS MGR_ENAME
+FROM EMP E1, EMP E2 
+WHERE E1.MGR = E2.EMPNO(+)
+ORDER BY E1.EMPNO;
+```
+
+- 오른쪽 외부 조인 사용하기
+
+```
+SELECT E1.EMPNO, E1.ENAMe, E1.MGR,
+	E2.EMPNO AS MGR_EMPNO,
+	E2.ENAME AS MGR_ENAME
+FROM EMP E1, EMP E2 
+WHERE E1.MGR(+) = E2.EMPNO
+ORDER BY E1.EMPNO;
+```
+
+- 외부 조인은 조인 기준 열의 NULL을 처리하는 것을 목적으로 자주 사용하는 조인 방식입니다. 하지만 (+) 기호를 붙이는 외부 조인 방식으로는 양쪽 모든 열이 외부 조인되는 '전체 외부 조인(full outer join)' 사용은 불가능합니다.
