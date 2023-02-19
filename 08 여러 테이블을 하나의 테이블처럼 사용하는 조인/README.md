@@ -156,3 +156,156 @@ ORDER BY E1.EMPNO;
 ```
 
 - 외부 조인은 조인 기준 열의 NULL을 처리하는 것을 목적으로 자주 사용하는 조인 방식입니다. 하지만 (+) 기호를 붙이는 외부 조인 방식으로는 양쪽 모든 열이 외부 조인되는 '전체 외부 조인(full outer join)' 사용은 불가능합니다.
+
+- 외부 조인은 벤 다이어그램(venn diagram)으로 다음과 같이 표기합니다.
+
+![image1](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/08%20%EC%97%AC%EB%9F%AC%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%84%20%ED%95%98%EB%82%98%EC%9D%98%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%B2%98%EB%9F%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94%20%EC%A1%B0%EC%9D%B8/images/image1.png)
+
+
+- 외부 조인과 반대 의미인 내부 조인(inner join), 좌우 양쪽 모두를 외부 조인 처리하는 전체 외부 조인(full outer join)은 다음과 같이 표기합니다.
+
+![image2](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/08%20%EC%97%AC%EB%9F%AC%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%84%20%ED%95%98%EB%82%98%EC%9D%98%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%B2%98%EB%9F%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94%20%EC%A1%B0%EC%9D%B8/images/image1.png)
+
+
+* * * 
+## SQL-99 표준 문법으로 배우는 조인 
+
+- SQL문은 ISO/ANSI에서 관계형 데이터베이스 표준 언어로 지정(SQL-82)된 후 SQL-92를 거쳐 SQL-99 표준 문법이 나왔습니다.
+- 오라클은 9i 버전부터 SQL-99 방식의 문법을 지원하고 있습니다. SQL-99 조인은 앞선 조인 방식과 기능은 같지만 조인을 사용하는 문법에서 다소 차이가 납니다. 
+- 다른 DBMS 제품에서도 사용할 수 있습니다.
+
+### NATUAL JOIN
+
+- NATURAL JOIN은 앞에서 소개한 등가 조인을 대신해 사용할 수 있는 조인방식으로 조인 대상이 되는 두 테이블에 이름과 자료형이 같은 열을 찾은 후 그 열을 기준으로 등가 조인을 해 주는 방식입니다.
+
+- NATUAL JOIN을 사용하여 조인하기
+
+```
+SELECT E.EMPNO, E.ENAME, E.JOB, E.MGR, E.HIREDATE, E.SAL, E.COMM, DEPTNO, D.DNAME, D.LOC
+FROM EMP E NATUAL JOIN DEPT D 
+ORDER BY DEPTNO, E.EMPNO;
+``` 
+
+- EMP 테이블과 DEPT 테이블은 공통 열 DEPTNO를 가지고 있으므로 NATUAL JOIN을 사용할 때 자동으로 DEPTNO 열을 기준으로 등가 조인됩니다. 
+- 기존 등가 조인과 다르게 조인 기준 열인 DEPTNO를 SELECT절에 명시할 때 테이블 이름을 붙이면 안되는 특징이 있습니다.
+
+### JOIN ~ USING
+
+- JOIN ~ USING 키워드를 사용한 조인 역시 기존 등가 조인을 대신하는 조인 방식입니다. NATURAL JOIN이 자동으로 조인 기준 열을 지정하는 것과 달리 USING 키워드에 조인 기준으로 사용할 열을 명시하여 사용합니다.
+
+```
+FROM TABLE1 JOIN TABLE2 USING (조인에 사용한 기준열)
+```
+
+- JOIN \~ USING을 사용하여 조인하기
+
+```
+SELECT E.EMPNO, E.ENAME, E.JOB, E.MGR, E.HIREDATE, E.SAL, E.COMM, 
+	DEPNO, D.DNAME, D.LOC 
+FROM EMP E JOIN DEPT D USING (DEPTNO)
+WHERE SAL >= 3000
+ORDER BY DEPTNO, E.EMPNO;
+```
+
+### JOIN ~ ON 
+
+- 가장 범용성 있는 JOIN \~ ON 키워드를 사용한 조인 방식에서는 기존 WHERE절에 있는 조인 조건식을 ON 키워드 옆에 작성합니다. 조인 기준 조건식은 ON에 명시하고 그 밖에 출력행을 걸러 내기 위해 WHERE 조건식을 따로 사용하는 방식입니다.
+
+```
+FROM TABLE1 JOIN TABLE2 ON (조인 조건식)
+```
+
+- JOIN \~ ON으로 등가 조인하기
+
+```
+SELECT E.EMPNO, E.ENAME, E.JOB, E.MGR, E.HIREDATE, E.SAL, E.COMM, 
+	E.DEPTNO,
+	D.DNAME, D.LOC 
+FROM EMP E JOIN DEPT D ON (E.DEPTNO = D.DEPTNO) 
+WHERE SAL <= 3000
+ORDER BY E.DEPTNO, EMPNO;
+```
+
+### OUTER JOIN
+
+- OUTER JOIN 키워드는 외부 조인에 사용합니다. 다른 SQL-99 방식의 조인과 마찬가지로 WHERE 절이 아닌 FROM 절에서 외부 조인을 선언합니다. 
+
+<table>
+	<tr>
+		<th rowspan='2'>왼쪽 외부 조인<br>(Left Outer Join)</th>
+		<td>기존</td>
+		<td>WHERE TABLE1.COL1 = TABLE2.COL1(+)</td>
+	</tr>
+	<tr>
+		<td>SQL-99</td>
+		<td>FROM TABLE1 LEFT OUTER JOIN TABLE2 ON (조인 조건식)</td>
+	</tr>
+	<tr>
+		<th rowspan='2'>오른쪽 외부 조인<br>(Right Outer Join)</th>
+		<td>기존</td>
+		<td>WHERE TABLE1.COL1(+) = TABLE2.COL1</td>
+	</tr>
+	<tr>
+		<td>SQL-99</td>
+		<td>FROM TABLE1 RIGHT OUTER JOIN TABLE2 ON (조인 조건식)</td>
+	</tr>
+	<tr>
+		<th rowspan='2'>전체 외부 조인<br>(Full Outer Join)</th>
+		<td>기존</td>
+		<td>기본 문법은 없음 (UNION 집합 연산자를 활용)</td>
+	</tr>
+	<tr>
+		<td>SQL-99</td>
+		<td>FROM TABLE1 FULL OUTER JOIN TABLE2 ON (조인 조건식)</td>
+	</tr>
+</table>
+
+- 왼쪽 외부 조인을 SQL-99로 작성하기
+
+```
+SELECT E1.EMPNO, E1.ENAME, E1.MGR, 
+	E2.EMPNO AS MGR_EMPNO,
+	E2.ENAME AS MGR_ENAME
+FROM EMP E1 LEFT OUTER JOIN EMP E2 ON (E1.MGR = E2.EMPNO)
+ORDER BY E1.EMPNO;
+```
+
+- 오른족 외부 조인을 SQL-99로 작성하기
+
+```
+SELECT E1.EMPNO, E1.ENAME, E1.MGR, 
+	E2.EMPNO AS MGR_EMPNO,
+	E2.ENAME AS MGR_ENAME
+FROM EMP E1 RIGHT OUTER JOIN EMP E2 ON (E1.MGR = E2.EMPNO)
+ORDER BY E1.EMPNO;
+```
+
+- 전체 외부 조인은 왼쪽, 오른쪽 외부 조인을 모두 적용한, 즉 왼쪽 열이 NULL인 경우와 오른쪽 열이 NULL인 경우 모두 출력하는 방식입니다.
+- 기존 외부 조인으로는 UNION 집합 연산자를 사용하여 왼쪽, 오른쪽 외부 조인 결과를 합치는 방법만 가능했습니다. 하지만 SQL-99 방식의 외부 조인은 FULL OUTER JOIN ~ ON 키워드로 양쪽 모두 외부 조인된 결과 값을 출력할 수 있습니다.
+
+- 전체 외부 조인을 SQL-99로 작성하기
+
+```
+SELECT E1.EMPNO, E1.ENAME, E1.MGR, 
+	E2.EMPNO AS MGR_EMPNO, 
+	E2.ENAME AS MGR_ENAME
+FROM EMP E1 FULL OUTER JOIN EMP E2 ON (E1.MGR = E2.EMPNO)
+ORDER BY E1.EMPNO;
+```
+
+### SQL-99 조인 방식에서 세 개 이상의 테이블을 조인할 때 
+
+- 기존 조인 방식
+
+```
+FROM TABLE1, TABLE2, TABLE3 
+WHERE TABLE1.COL = TABLE2.COL
+AND TABLE2.COL = TABLE3.COL
+```
+
+- SQL-99방식
+
+```
+FROM TABLE1 JOIN TABLE2 ON (조건식)
+FROM TABLE3 ON (조건식);
+```
