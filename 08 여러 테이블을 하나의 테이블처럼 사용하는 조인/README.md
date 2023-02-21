@@ -164,7 +164,7 @@ ORDER BY E1.EMPNO;
 
 - 외부 조인과 반대 의미인 내부 조인(inner join), 좌우 양쪽 모두를 외부 조인 처리하는 전체 외부 조인(full outer join)은 다음과 같이 표기합니다.
 
-![image2](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/08%20%EC%97%AC%EB%9F%AC%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%84%20%ED%95%98%EB%82%98%EC%9D%98%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%B2%98%EB%9F%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94%20%EC%A1%B0%EC%9D%B8/images/image1.png)
+![image2](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/08%20%EC%97%AC%EB%9F%AC%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%9D%84%20%ED%95%98%EB%82%98%EC%9D%98%20%ED%85%8C%EC%9D%B4%EB%B8%94%EC%B2%98%EB%9F%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%8A%94%20%EC%A1%B0%EC%9D%B8/images/image2.png)
 
 
 * * * 
