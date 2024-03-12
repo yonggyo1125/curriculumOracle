@@ -337,6 +337,55 @@ END IF;  - (3)
 |(2)|조건식의 결과 값이 true일 때 실행할 명령어를 지정합니다. 여러 명령어 지정이 가능합니다.|
 |(3)|IF를 종료합니다.|
 
+- 변수에 입력한 값이 홀수인지 알아보기(입력 값이 홀수일 때)
+
+```sql
+DECLARE
+	V_NUMBER NUMBER := 13;
+BEGIN
+	IF MOD(V_NUMBER, 2) = 1 THEN
+		DBMS_OUTPUT.PUT_LINE('V_NUMBER는 홀수 입니다.');
+	END IF;
+END;
+/
+```
+
+#### IF-THEN-ELSE
+- IF-THEN-ELSE문은 지정한 조건식의 결과 값이 true일 경우에 실행할 명령어와 조건식의 결과 값이 true가 아닐 때 실행할 명령어를 각각 지정할 수 있습니다.
+
+```
+IF 조건식 THEN  - (1)
+  수행할 명령어;  - (2)
+ELSE 
+  수행할 명령어;  - (3)
+END IF; - (4)
+```
+
+|번호|설명|
+|---|-----|
+|(1)|true 또는 false 판별이 가능한 조건식을 지정합니다. 여러 연산자 및 함수 사용이 가능합니다.|
+|(2)|조건식의 결과 값이 true일 경우 실행할 명령어를 지정합니다. 여러 명령어 지정이 가능합니다.|
+|(3)|조건식의 결과 값이 true가 아닐 경우 실행할 명령어를 지정합니다. 여러 명령어 지정이 가능합니다.|
+|(4)|IF를 종료합니다.|
+
+- 변수에 입력된 값이 홀수인지 짝수인지 알아보기(입력 값이 짝수일 때)
+
+```sql
+DECLARE
+	V_NUMBER NUMBER := 14;
+BEGIN
+	IF MOD(V_NUMBER, 2) = 1 THEN
+		DBMS_OUTPUT.PUT_LINE('V_NUMBER는 홀수입니다.');
+	ELSE 
+		DBMS_OUTPUT.PUT_LINE('V_NUMBER는 짝수입니다.');
+	END IF;
+END;
+/
+```
+
+#### IF-THEN-ELSEIF
+
+
 ---
 
 ## 반복 제어문
