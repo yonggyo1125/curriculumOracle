@@ -32,11 +32,70 @@ END;
 
 ### Hello, PL/SQL 출력하기
 - 먼저 가장 간단한 형태의 PL/SQL문을 작성하여 실행해 보겠습니다. 살펴볼 예제는 SQL*PLUS에서 Hello, PL/SQL! 문장을 화면에 출력해 보는 예제입니다.
-- 
+- PL/SQL 실행 결과를 화면에 출력하기 위해 다음과 같이 SERVEROUTPUT 환경 변수 값을 ON으로 변경해 주어야 합니다. PUT_LINE은 화면 출력을 위해 오라클에서 기본으로 제공하여 DBMS_OUTPUT 패키지에 속해 있습니다. 작성한 PL/SQL문에는 선언부와 예외 처리부가 생략되어 있고 마지막에 슬래시(/)가 작성되어 있음을 눈여겨 보세요.
+
+```sql
+SET SERVEROUTPUT ON;  -- 실행 결과를 화면에 출력 
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Hello, PL/SQL!');
+END;
+/
+```
+
+- 위 PL/SQL 문의 실행 결과를 참고하여 PL/SQL문을 작성하고 실행하기 위해 다음 사항을 기억하세요.
+    - 1. PL/SQL 블록을 구성하는 DECLARE, BEGIN, EXCEPTION 키워드에는 세미콜론(;)을 사용하지 않습니다.
+    - 2. PL/SQL 블록의 각 부분에서 실행해야 하는 문장 끝에는 세미콜론(;)을 사용합니다.<br>ex) DBMS_OUTPUT.PUT_LINE('Hello, PL/SQL!');
+    - 3. PL/SQL문 내부에서 한 줄 주석(--)과 여러 줄 주석(/* ~ */)을 사용할 수 있습니다. 그리고 이들 주석은 SQL문에서도 사용할 수 있습니다.
+    - 4. PL/SQL문 작성을 마치고 실행하기 위해 마지막에 슬래시(/)를 사용합니다.
+
+- 그리고 PL/SQL문을 작성하고 실행하기 전에 SET SERVEROUTPUT ON 명령어를 실행하여 PL/SQL문 결과를 화면에 출력하는 것을 잊지 마세요. SQL*PLUS를 실행하여 접속했다면 SET SERVEROUTPUT ON을 반드시 다시 실행해 주어야 PL/SQL 결과를 확인할 수 있습니다.
+
+### PL/SQL 주석
+- PL/SQL 주석은 PL/SQL 코드에 포함되어 있지만 실행되지 않는 문장을 뜻합니다. 그러니까 실행 결과에 아무 영향을 미치지 못하는 문장을 만들기 위해 사용합니다. 일반적으로 특정 기호를 사용하여 코드 설명 또는 이력 등을 남겨 놓거나 일시적으로 실행되지 않기를 원하는 코드를 삭제하지 않고 남겨 두는 용도로 주석 영역을 지정합니다. PL/SQL에서 사용하는 주석은 다른 여러 프로그래밍 언어와 마찬가지로 한 줄 주석과 여러 줄 주석으로 나뉩니다.
+
+|종류|사용 기호|설명|
+|---|------|-----|
+|한 줄 주석|-- [주석 처리 내용]|현재 줄만 주석 처리됩니다.|
+|여러 줄 주석|/*<br>[주석 처리 내용]<br>*/|/* 에서 */ 까지 여러 줄에 걸쳐 주석 처리됩니다.|
+
+- V_EMPNO를 출력하는 문장을 다음과 같이 한 줄로 주석 처리해 봅시다. 해당 문장은 주석으로 처리되어 실행되지 못하므로 결과에 V_EMPNO가 출력되지 않습니다. 
+- 한 줄 주석 사용하기
+
+```sql
+DECLARE
+V_EMPNO NUMBER(4) := 7788;
+V_ENAME VARCHAR2(10);
+BEGIN
+V_ENAME := 'SCOTT';
+-- DBMS_OUTPUT.PUT_LINE('V_EMPNO : ' || V_EMPNO);
+DBMS_OUTPUT.PUT_LINE('V_ENAME : ' || V_ENAME);
+END;
+/
+```
+
+- 이번에는 여러 줄 주석을 사용하여 V_EMPNO, V_ENAME을 출력하는 두 줄의 문장을 모두 처리해 봅시다. /* 기호로 시작하여 */ 기호로 끝나는 범위 안에 모든 문장은 실행되지 않으므로 결과로 아무것도 출력되지 않습니다.
+- 여러 줄 주석 사용하기
+
+```sql
+DECLARE
+V_EMPNO NUMBER(4) := 7788;
+V_ENAME VARCHAR2(10);
+BEGIN
+V_ENAME := 'SCOTT';
+/*
+DBMS_OUTPUT.PUT_LINE('V_EMPNO : ' || V_EMPNO);
+DBMS_OUTPUT.PUT_LINE('V_ENAME : ' || V_ENAME);
+*/
+END;
+/
+```
+- 주석은 이처럼 실행하지 않으려는 문장을 지정하는 데 사용하며 PL/SQL문 외에 앞에서 살펴본 SQL문에도 그대로 사용할 수 있습니다.
 
 --- 
 
 ## 변수와 상수
+
+
 
 --- 
 
