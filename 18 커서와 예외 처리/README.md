@@ -278,3 +278,105 @@ END;
 ---
 
 ## 오류가 발생해도 프로그램이 비정상 종료되지 않도록 하는 예외 처리
+
+### 오류란?
+- 오라클에서 SQL 또는 PL/SQL이 정상 수행되지 못하는 상황을 오류(error)라고 합니다. 이 오류는 크게 두 가지로 구분됩니다. 하나는 문법이 잘못되었거나 오타로 인한 오류로 컴파일 오류(compile Error), 문법 오류(syntax error)라고 합니다. 또 하나는 명령문의 실행 중 발생한 오류가 있습니다. 이 오류를 런타임 오류(runtime error) 또는 실행 오류(execute error)라고 부릅니다. 오라클에서는 이 두 가지 오류 중 후자, 즉 프로그램이 실행되는 도중 발생하는 오류를 예외(exception)라고 합니다. 먼저 예외가 발생하는 다음 PL/SQL 문을 실행해 봅시다.
+
+- 예외가 발생하는 PL/SQL
+
+```sql
+DECLARE
+	v_wrong NUMBER;
+BEGIN
+	SELECT DNAME INTO v_wrong
+		FROM DEPT
+	WHERE DEPTNO = 10;
+END;
+/
+```
+
+- 결과 화면
+
+```
+*
+1행에 오류:
+ORA-06502: PL/SQL: 수치 또는 값 오류: 문자를 숫자로 변환하는데 오류입니다
+ORA-06512:  4행
+```
+- 문자열 데이터를 숫자 자료형 변수에 대입하려고 했기 때문에 위 PL/SQL문은 예외가 발생하고 비정상 종료됩니다. 이렇게 PL/SQL 실행 중 예외가 발생했을 때 프로그램이 비정상 종료되는 것을 막기 위해 특정 명령어를 PL/SQL문 안에 작성하는데 이를 '예외 처리'라고 합니다. 
+- 예외 처리는 PL/SQL문 안에서 EXCEPTION 영역에 필요 코드를 작성하는 것을 뜻합니다.
+- 예외를 처리하는 PL/SQL(예외 처리 추가)
+
+```sql
+DECLARE
+	v_wrong NUMBER;
+BEGIN
+	SELECT DNAME INTO v_wrong
+		FROM DEPT
+	WHERE DEPTNO = 10;
+EXCEPTION
+	WHEN VALUE_ERROR THEN 
+		DBMS_OUTPUT.PUT_LINE('예외 처리 : 수치 또는 값 오류 발생');
+END;
+/ 
+```
+
+- 결과를 살펴보면 예외가 발생하였지만 PL/SQL문은 정상 처리되었음을 확인할 수 있습니다. 이렇게 EXCEPTION 키워드 뒤에 예외 처리를 위해 작성한 코드 부분을 예외 처리부 또는 예외 처리절이라고 합니다. 이 예외 처리부가 실행되면 예외가 발생한 코드 이후의 내용은 실행이 되지 않습니다.
+
+- 예외 발생 후의 코드 실행 여부 확인하기
+
+```sql
+DECLARE
+	v_wrong NUMBER;
+BEGIN
+	SELECT DNAME INTO v_wrong
+		FROM DEPT
+	WHERE DEPTNO = 10;
+
+	DBMS_OUTPUT.PUT_LINE('예외가 발생하면 다음 문장은 실행되지 않습니다.');
+
+EXCEPTION
+	WHEN VALUE_ERROR THEN
+		DBMS_OUTPUT.PUT_LINE('예외 처리 : 수치 또는 값 오류 발생');
+END;
+/
+```
+
+### 얘외 종류 
+- 오라클에서 예외는 크게 내부 예외(internal exceptions)와 사용자 정의 예외(user-defined exceptions)로 나뉩니다. 내부 예외는 오라클에서 미리 정의한 예외를 뜻하며 사용자 정의 예외는 사용자가 필요에 따라 추가로 정의한 예외를 의미합니다. 내부 예외는 이름이 정의되어 있는 예외인 사전 정의된 예외(predefined name exceptions)와 이름이 정해지지 않은 예외로 다시 나뉩니다.
+
+|예외 종류| 설명  |
+|---|-----|
+|내부 예외<br>(internal exceptions)|사전 정의된 예외<br>(predefined name exceptions)|내부 예외 중 예외 번호에 해당하는 이름이 존재하는 예외|
+|내부 예외<br>(internal exceptions)|이름이 없는 예외<br>(unnamed exceptions)|내부 예외 중 이름이 존재하지 않는 예외(사용자가 필요에 따라 이름을 지정할 수 있음)|
+|사용자 정의 예외(user-defined exceptions)|사용자가 필요에 따라 직접 정의한 예외|
+
+- 사전 정의된 예외는 비교적 자주 발생하는 예외에 이름을 붙여 놓은 것입니다. 
+
+|예외 이름|예외 번호(SQLCODE)|설명|
+|---|----|----|
+|ACCESS_INTO_NULL|ORA-06530: -6530|초기화되지 않은 객체 속성 값 할당|
+|CASE_NOT_FOUND|ORA-06592: -6592|CASE문의 WHERE절에 조건이 없고 ELSE절도 없을 경우|
+|COLLECTION_IS_NULL|ORA-06531: -6531|초기화되지 않은 중첩 테이블, VARRAY에 EXIT외 컬렉션 메서드를 사용하려 할 경우 또는 초기화되지 않은 중첩 테이블이나 VARRAY에 값을 대입하려 할 경우|
+|CURSOR_ALREADY_OPEN|ORA-06511: -6511|이미 OPEN된 커서를 OPEN 시도할 경우|
+|DUP_VAL_ON_INDEX|ORA-00001: -1|UNIQUE 인덱스가 있는 열에 중복된 값을 저장하려고 했을 경우|
+|INVALID_CURSOR|ORA-01001: -1001|OPEN되지 않은 커서를 CLOSE 시도하는 것과 같이 잘못된 커서 작업을 시도하는 경우|
+|INVALID_NUMBER|ORA-01722: -1722|문자에서 숫자로의 변환이 실패했을 경우|
+|LOGIN_DENIED|ORA-01017: -1017|사용자 이름이나 패스워드가 올바르지 않은 상태에서 로그인을 시도할 경우|
+|NO_DATA_FOUND|ORA-01403: +100|SELECT INTO문에서 결과 행이 하나도 없을 경우|
+|NOT_LOGGED_ON|ORA-01012: -1012|데이터베이스에 접속되어 있지 않은 경우|
+|PROGRAM_ERROR|ORA-06501: -6501|PL/SQL 내부 오류가 발생했을 경우|
+|ROWTYPE_MISMATCH|ORA-06504: -6504|호스트 커서 변수와 PL/SQL 커서 변수의 자료형이 호환되지 않을 경우|
+|SELF_IS_NULL|ORA-30625: -30625|초기화되지 않은 오브젝트의 MEMBER 메서드를 호출한 경우|
+|STORAGE_ERROR|ORA-06500: -6500|PL/SQL 메모리가 부족하거나 문제가 발생한 경우|
+|SUBSCRIPT_BEYOND_COUNT|ORA-06533: -6533|컬렉션의 요소 수보다 큰 인덱스를 사용하여 중첩 테이블이나 VARRAY의 요소 참조를 시도할 경우|
+|SUBSCRIPT_OUTSIDE_LIMIT|ORA-06532: -6532|정상 범위의 인덱스 번호를 사용하여 중첩 테이블이나 VARRAY 요소 참조를 시도할 경우|
+|SYS_INVALID_ROWID|ORA-01410: -1410|문자열을 ROWID로 반환할 때 값이 적절하지 않은 경우|
+|TIMEOUT_ON_RESOURCE|ORA-00051: -51|자원 대기 시간을 초과했을 경우|
+|TOO_MANY_ROWS|ORA-01422: -1422|SELECT INTO문의 결과 행이 여러 개일 경우|
+|VALUE_ERROR|ORA-06502: -6502|산술,변환,잘림,제약 조건 오류가 발생했을 경우|
+|ZERO_DIVIDE|ORA-01476: -1476|숫자 데이터를 0으로 나누려고 했을 경우|
+
+- 이와 달리 이름 없는 예외는 ORA-XXXXX 식으로 예외 번호는 있지만 이름이 정해져 있지 않은 예외를 뜻합니다. 이름이 없는 예외는 예외 처리부에서 사용하기 위해 이름을 직접 붙여서 사용합니다.
+
+### 예외 처리부 작성 
