@@ -123,6 +123,38 @@ SELECT * FROM DEPT_RECORD
 - 레코드에 포함된 변수의 자료형을 지정할 때 다른 레코드를 지정할 수도 있습니다.
 - 레코드에 다른 레코드 포함하기
 
+```sql
+DECLARE
+	TYPE REC_DEPT IS RECORD(
+		deptno DEPT.DEPTNO%TYPE,
+		dname DEPT.DNAME%TYPE,
+		loc DEPT.LOC%TYPE
+	);
+	TYPE REC_EMP IS RECORD(
+		empno EMP.EMPNO%TYPE,
+		ename EMP.ENAME%TYPE,
+		dinfo REC_DEPT
+	);
+	emp_rec REC_EMP;
+BEGIN
+	SELECT E.EMPNO, E.ENAME, D.DEPTNO, D.DNAME, D.LOC 
+		INTO emp_rec.empno, emp_rec.ename,
+			emp_rec.dinfo.deptno,
+			emp_rec.dinfo.dname,
+			emp_rec.dinfo.loc
+		FROM EMP E, DEPT D 
+	WHERE E.DEPTNO = D.DEPTNO
+	AND E.EMPNO = 7788;
+	DBMS_OUTPUT.PUT_LINE('EMPNO : ' || emp_rec.empno);
+	DBMS_OUTPUT.PUT_LINE('ENAME : ' || emp_rec.ename);
+	
+	DBMS_OUTPUT.PUT_LINE('DEPTNO : ' || emp_rec.dinfo.deptno);
+	DBMS_OUTPUT.PUT_LINE('DNAME : ' || emp_rec.dinfo.dname);
+	DBMS_OUTPUT.PUT_LINE('LOC : ' || emp_rec.dinfo.loc);
+END;
+/
+```
+
 ---
 
 ## 자료형이 같은 여러 데이터를 저장하는 컬렉션
