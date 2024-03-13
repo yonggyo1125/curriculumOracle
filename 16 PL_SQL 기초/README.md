@@ -517,3 +517,145 @@ END;
 ---
 
 ## 반복 제어문
+
+- 반복문은 특정 작업을 반복하여 수행하고자 할 때 사용합니다. PL/SQL에서는 다음 네 가지 반복문을 제고항고 있습니다. 
+
+|종류|설명|
+|---|-----|
+|기본 LOOP|기본 반복문|
+|WHILE LOOP|특정 조건식의 결과를 통해 반복 수행|
+|FOR LOOP|반복 횟수를 정하여 반복 수행|
+|Cursor FOR LOOP|커서를 활용한 반복 수행|
+
+- 위에서 나열한 반복문 외에도 반복 수행을 중단시키거나 특정 반복 주기를 건너뛰는 다음 명령어도 함께 살펴보겠습니다.
+
+|종류|설명|
+|---|-----|
+|EXIT|수행 중인 반복 종료|
+|EXIT-WHEN|반복 종료를 위한 조건식을 지정하고 만족하면 반복 종료|
+|CONTINUE|수행 중인 반복의 현재 주기를 건너뜀|
+|CONTINUE-WHEN|특정 조건식을 지정하고 조건식을 만족하면 현재 반복 주기를 건너뜀|
+
+### 기본 LOOP
+
+기본 LOOP문은 매우 간단한 형태의 반복문입니다. 반복을 위한 별다른 조건 없이 반복할 작업 내용을 지정해 줍니다.
+
+```
+LOOP
+  반복 수행 작업;
+END LOOP;
+```
+
+- 기본 LOOP문은 반복의 종료 시점이나 조건식을 따로 명시하지 않으므로 지정한 작업을 무한히 반복 수행하게 됩니다. 이러한 현상을 무한 루프(Infinite Loop)라고 합니다. 하지만 수행 작업을 무한 방복해야 하는 경우는 많지 않으므로 대부분은 기본 LOOP문은 반복을 종료하는 EXIT 명령어와 함께 사용합니다.
+
+- 기본 LOOP문 사용하기 
+- V_NUM 변수는 기본 LOOP문의 반복이 수행됨에 따라 값이 1씩 증가하며 EXIT-WHEN문을 사용하여 값이 4보다 클때 반복을 종료하도록 구현
+
+```sql
+DECLARE
+	V_NUM NUMBER := 0;
+BEGIN
+	LOOP
+		DBMS_OUTPUT.PUT_LINE('현재 V_NUM : ' || V_NUM);
+		V_NUM := V_NUM + 1;
+		EXIT WHEN V_NUM > 4;
+	END LOOP;
+	
+END;
+/
+```
+
+- 만약 EXIT-WHEN 대신 EXIT문을 사용한다면 IF 조건문을 함께 사용하여 다음과 같이 구현할 수 있습니다.
+
+```sql
+DECLARE
+	V_NUM NUMBER := 0;
+BEGIN
+	LOOP	
+		DBMS_OUTPUT.PUT_LINE('현재 V_NUM : ' || V_NUM);
+		V_NUM := V_NUM + 1;
+		IF V_NUM > 4 THEN 
+			EXIT;
+		END IF;
+	END LOOP;
+END;
+/
+```
+
+### WHILE LOOP
+- WHILE LOOP문은 반복 수행 여부를 결정하는 조건식을 먼저 지정한 후 조건식의 결과 값이 true일 때 조건을 반복하고 false가 되면 반복을 끝냅니다.
+
+```
+WHILE 조건식 LOOP
+  반복 수행 작업;
+END LOOP;
+```
+
+- WHILE LOOP 사용하기
+
+```sql
+DECLARE
+	V_NUM NUMBER := 0;
+BEGIN
+	WHILE V_NUM < 4 LOOP
+		DBMS_OUTPUT.PUT_LINE('현재 V_NUM : ' || V_NUM);
+		V_NUM := V_NUM + 1;
+	END LOOP;
+END;
+/
+```
+
+### FOR LOOP
+- FOR LOOP문은 반복의 횟수를 지정할 수 있는 반복문
+
+```
+FOR i IN 시작 값 .. 종료 값 LOOP
+  반복 수향 작업;
+END LOOP;
+```
+
+- FOR LOOP 사용하기
+
+```sql
+BEGIN
+	FOR i IN 0..4 LOOP
+		DBMS_OUTPUT.PUT_LINE('현재 i의 값 : ' || i);
+	END LOOP;
+END;
+/
+```
+
+- 시작 값에서 종료 값을 역순으로 반복하고 싶다면 다음과 같이 REVERSE 키워드를 사용합니다. 하지만 FOR LOOP문에서 사용하는 시작 값과 종료 값의 위치는 변하지 않습니다.
+
+```
+FOR i IN REVERSE 시작 값 .. 종료 값 LOOP
+  반복 수행 작업;
+END LOOP;
+```
+
+- FOR LOOP 사용하기
+
+```sql
+BEGIN 
+	FOR i IN REVERSE 0..4 LOOP
+		DBMS_OUTPUT.PUT_LINE('현재 i의 값 : ' || i);
+	END LOOP;
+END;
+/
+```
+
+### CONTINUE문, CONTINUE-WHEN문 
+
+- CONTINUE문과 CONTINUE-WHEN문은 오라클 11g 버전부터 사용할 수 있습니다. 반복 수행 중 CONTINUE가 실행되면 현재 반복 주기에 수행해야 할 남은 작업을 건너뛰고 다음 반복 주기로 바로 넘어가는 효과가 있습니다. EXIT, EXIT-WHEN문과 마찬가지로 CONTINUE는 즉시 다음 반복 주기로 넘어가고, CONTINUE-WHEN문은 특정 조건식을 만족할 때 다음 반복 주기로 넘어가게 됩니다.
+
+- FOR LOOP 안에 CONTINUE문 사용하기
+
+```sql
+BEGIN
+	FOR i IN 0..4 LOOP
+		CONTINUE WHEN MOD(i, 2) = 1;
+		DBMS_OUTPUT.PUT_LINE('현재 i의 값 : ' || i);
+	END LOOP;
+END;
+/
+```
