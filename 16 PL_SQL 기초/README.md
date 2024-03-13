@@ -385,6 +385,134 @@ END;
 
 #### IF-THEN-ELSEIF
 
+- 결과 값이 true인지 아닌지 여부에 따라 두 가지 상황을 구현할 수 있는 IF-THEN-ELSE문과 달리 IF-THEN-ELSIF문은 여러 종류의 조건을 지정하여 각 조건을 만족하는 경우마다 다른 작업을 수행을 지정하는 것이 가능합니다.
+
+```
+IF 조건식 THEN  - (1)
+  수행할 명령어;  - (2)
+ELSIF 조건식  - (3)
+  수행할 명령어;  - (4)
+ELSIF - (5)
+  수행할 명령어;  - (6)
+  ...
+ELSE  - (7)
+  수행할 명령어;  - (8)
+END IF; - (9)
+```
+
+|번호|설명|
+|---|-----|
+|(1)~(2)|(1) 조건식의 결과 값이 true이면 (2) 명령어를 수행하고(다음 ELSIF 및 ELSE문은 실행되지 않음) 조건식의 결과 값이 false면 다음 ELSIF 조건식으로 넘어갑니다.|
+|(3)~(6)|(3) 조건식의 결과 값이 true이면 (4) 명령어를 수행하고(다음 ELSIF 및 ELSE문은 실행되지 않음) 조건식의 결과 값이 false이면 다음 ELSIF 또는 ELSE로 넘어갑니다. (5), (6) 과정도 같습니다.|
+|(7)~(8)|(7) 위 IF, ELSIF 조건식의 결과 값이 어디에서도 true가 나오지 않는다면 (8) 명령어를 수행합니다.|
+|(9)|IF를 종료합니다.|
+
+- 입력한 점수가 어느 학점인지 출력하기(IF-THEN-ELSIF 사용)
+
+```sql
+DECLARE
+	V_SCORE NUMBER := 87;
+BEGIN
+	IF V_SCORE >= 90 THEN
+		DBMS_OUTPUT.PUT_LINE('A학점');
+	ELSIF V_SCORE >= 80 THEN
+		DBMS_OUTPUT.PUT_LINE('B학점');
+	ELSIF V_SCORE >= 70 THEN 
+		DBMS_OUTPUT.PUT_LINE('C학점');
+	ELSIF V_SCORE >= 60 THEN 
+		DBMS_OUTPUT.PUT_LINE('D학점');
+	ELSE
+		DBMS_OUTPUT.PUT_LINE('F학점');
+	END IF;
+END;
+/
+```
+
+### CASE 조건문 
+- CASE 조건문도 IF조건문과 마찬가지로 조건식의 결과 값에 따라 여러 가지 수행 작업을 지정할 수 있습니다. IF-THEN-ELSIF문과 같이 조건식의 결과 값이 여러 가지일 때 CASE 조건문을 좀 더 단순하게 표현할 수 있습니다. CASE 조건문은 다음과 같이 두 가지 방식을 사용합니다.
+
+|종류|설명|
+|---|-----|
+|단순 CASE문|비교 기준이 되는 조건의 값이 여러 가지일 때 해당 값만 명시하여 작업 수행|
+|검색 CASE문|특정한 비교 기준 없이 여러 조건식을 나열하여 조건식에 맞는 작업 수행|
+
+#### 단순 CASE
+- 단순 CASE문은 비교 기준(여러 가지 결과 값이 나올 수 있는)이 되는 변수 또는 식을 명시합니다. 그리고 각 결과 값에 따라 수행할 작업을 지정합니다.
+
+```
+CASE 비교 기준 - (1)
+  WHEN 값1 THEN  - (2)
+    수행할 명령어;   - (3) 
+  WHEN 값2 THEN  - (4)
+    수행할 명령어; - (5)
+  ...
+  ELSE - (6)
+    수행할 명령어;  - (7) 
+END CASE;  - (8)
+```
+
+|번호| 설명                                                             |
+|---|----------------------------------------------------------------|
+|(1)|(1) 먼저 여러 결과 값이 나올 수 있는 비교 기준을 지정합니다. 변수 또는 여러 표현식을 지정할 수 있습니다. |
+|(2)~(5)|(2) 비교 기준의 결과 값이 값1과 일치하면 (3) 작업을 수행하고 나머지 명령어를 건너뜁니다. (4), (5) 역시 같습니다.|
+|(6)~(7)|(6) 위의 WHEN에 일치하는 값을 찾지 못한다면 마지막으로 ELSE에 지정한 (7) 작업을 수행합니다.|
+|(8)|CASE문을 끝냅니다.|
+
+- 입력 점수에 따른 학점 출력하기(단순 CASE 사용)
+
+```sql
+DECLARE
+	V_SCORE NUMBER := 87;
+BEGIN
+	CASE TRUNC(V_SCORE/10)
+		WHEN 10 THEN DBMS_OUTPUT.PUT_LINE('A학점');
+		WHEN 9 THEN DBMS_OUTPUT.PUT_LINE('B학점');
+		WHEN 8 THEN DBMS_OUTPUT.PUT_LINE('C학점');
+		WHEN 7 THEN DBMS_OUTPUT.PUT_LINE('D학점');
+		ELSE DBMS_OUTPUT.PUT_LINE('F학점');
+	END CASE;
+END;
+/
+```
+
+#### 검색 CASE 
+검색 CASE문은 비교 기준을 명시하지 않고 각각의 WHEN 절에서 조건식을 명시한 후 해당 조건식을 만족할 때 수행할 작업을 정해줍니다.
+
+```
+CASE 
+  WHEN 조건식1 THEN - (1)
+    수행할 명령어;  - (2) 
+  WHEN 조건식2 THEN - (3)
+    수행할 명령어;  - (4) 
+  ...
+  ELSE  - (5) 
+    수행할 명령어; - (6) 
+END CASE;
+```
+
+|번호|설명|
+|---|----|
+|(1)~(4)|(1) 조건식1의 결과 값이 true라면 (2) 작업을 수행합니다. 나머지 명령어는 건너뜁니다. (3),(4)로 표현한 다른 WHEN절 역시 동일하게 동작합니다.|
+|(5)~(6)|(5) 먼저 실행한 WHEN절의 조건식을 만족하는 경우가 없다면 (6) 작업을 수행합니다.|
+
+- 입력 점수에 따른 학점 출력하기(검색 CASE 사용)
+
+```sql
+DECLARE
+	V_SCORE NUMBER := 87;
+BEGIN
+	CASE 
+		WHEN V_SCORE >= 90 THEN DBMS_OUTPUT.PUT_LINE('A학점');
+		WHEN V_SCORE >= 80 THEN DBMS_OUTPUT.PUT_LINE('B학점');
+		WHEN V_SCORE >= 70 THEN DBMS_OUTPUT.PUT_LINE('C학점');
+		WHEN V_SCORE >= 60 THEN DBMS_OUTPUT.PUT_LINE('D학점');
+		ELSE DBMS_OUTPUT.PUT_LINE('F학점');
+	END CASE;
+END;
+/
+```
+
+> 오라클 함수에서 언급한 CASE문과 PL/SQL문의 CASE문은 사용방법이 유사합니다. 하지만 SQL문에 사용하는 CASE문의 조건에 따라 특정 결과 값을 반환하는 것에 그치는 데 반해 PL/SQL문의 CASE 조건문은 조건에 따라 수행할 작업을 지정할 수 있다는 차이가 있습니다. SQL문의 CASE는 END로 종료되며 PL/SQL문의 CASE 조건문은 END CASE로 종요된다는 차이점이 있습니다.
 
 ---
 
