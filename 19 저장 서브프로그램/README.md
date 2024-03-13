@@ -228,6 +228,157 @@ ORA-06550: 줄 1, 열7:PL/SQL: Statement ignored
 
 - 만약 위 예와는 달리 기본값이 지정된 파라미터와 지정되지 않은 파라미터의 순서가 섞여 있다면 기본값이 지정되지 않은 파라미터까지 값을 입력해 주어야 합니다. 즉 다음과 같이 파라미터가 지정되어 있다면 프로시저를 실행할 때 최소한 세 개 값을 입력해 주어야 합니다.
 
+```
+(
+    param1 IN NUMBER,
+    param2 NUMBER := 3,
+    param3 NUMBER,
+    param4 NUMBER DEFAULT 4
+)
+```
+
+- 하지만 파라미터 종류나 개수가 많아지면 이러한 방식은 다소 불편할 수 있습니다. 그래서 다음과 같이 =>를 사용하여 파라미터 이름에 직접 값을 대입하는 방식도 사용합니다.
+- 파라미터 이름을 활용하여 프로시저에 값 입력하기
+
+```
+EXECUTE pro_param_in(param1 => 10, param2 => 20);
+```
+
+- 이와 같이 파라미터에 값을 지정할 때는 다음 세 가지 지정 방식을 사용할 수 있습니다.
+
+|종류|설명|
+|---|-----|
+|위치 지정|지정한 파라미터 순서대로 값을 지정하는 방식|
+|이름 지정|=> 연산자로 파라미터 이름을 명시하여 값을 지정하는 방식|
+|혼합 지정|일부 파라미터는 순서대로 값만 저장하고 일부 파라미터는 => 연산자로 값을 지정하는 방식(11g부터 사용 가능)|
+
+#### OUT 모드 파라미터
+
+- OUT 모드를 사용한 파라미터는 프로시서 실행 후 호출한 프로그램으로 값을 반환합니다. 사원 번호를 입력받아 사원 이름과 급여를 반환하는 pro_param_out 프로시저를 생성해 봅시다.
+- OUT 모드 파라미터 정의하기 
+
+```sql
+CREATE OR REPLACE PROCEDURE pro_param_out
+(
+	in_empno IN EMP.EMPNO%TYPE,
+	out_ename OUT EMP.ENAME%TYPE,
+	out_sal OUT EMP.SAL%TYPE
+)
+IS 
+
+BEGIN 
+	SELECT ENAME, SAL INTO out_ename, out_sal
+		FROM EMP 
+	WHERE EMPNO = in_empno;
+END pro_param_out;
+/
+```
+
+- OUT 모드로 지정한 두 파라미터 out_ename, out_sal은 pro_param_out 프로시저를 실행한 후 값이 반환됩니다. 이렇게 반환되는 값을 다음과 같이 또 다른 PL/SQL 블록에서 받아서 처리할 수도 있습니다. 
+- OUT 모드 파라미터 사용하기
+
+```sql
+DECLARE
+	v_ename EMP.ENAME%TYPE;
+	v_sal EMP.SAL%TYPE;
+BEGIN
+	pro_param_out(7788, v_ename, v_sal);
+	DBMS_OUTPUT.PUT_LINE('ENAME : ' || v_ename);
+	DBMS_OUTPUT.PUT_LINE('SAL : ' || v_sal);
+END;
+/
+```
+
+#### IN OUT 모드 파라미터
+
+- IN OUT 모드로 선언한 파라미터는 IN, OUT으로 선언한 파라미터 기능을 동시에 수행합니다. 즉 값을 입력받을 때와 프로시저 수행 후 결과 값을 반환할 때 사용합니다.
+- IN OUT 모드 파라미터 정의하기
+
+```sql
+CREATE OR REPLACE PROCEDURE pro_param_input 
+(
+	input_no IN OUT NUMBER
+)
+IS 
+
+BEGIN 
+	input_no := input_no * 2;	
+END pro_param_input;
+/
+```
+
+- OUT 모드로 선언된 파라미터와 마찬가지로 IN OUT 모드로 선언된 파라미터 역시 다른 PL/SQL 블록에서 데이터를 대입받아 사용할 수 있습니다.
+- IN OUT 모드 파라미터 사용하기
+
+```sql
+DECLARE 
+	NO NUMBER;
+BEGIN 
+		NO := 5;
+		pro_param_input(NO);
+		DBMS_OUTPUT.PUT_LINE('no : ' || NO);
+END;
+/
+```
+
+### 프로시저 오류 정보 확인하기
+
+- 생성할 때 오류가 발생하는 프로시저 알아보기 
+
+```sql
+CREATE OR REPLACE PROCEDURE pro_err 
+IS 
+	err_no NUMBER;
+BEGIN
+	err_no = 100;
+	DBMS_OUTPUT.PUT_LINE('err_no : ' || err_no);
+END pro_err;
+/
+```
+
+- 결과 화면
+
+```
+경고: 컴파일 오류와 함께 프로시저가 생성되었습니다.
+```
+
+- '컴파일 오류와 함께 프로시저가 생성되었습니다.'라는 메시지와 함께 프로시저를 만들 때 오류가 발생했음을 알 수 있습니다. 서브프로그램을 만들 때 발생한 오류는 <code>SHOW ERRORS</code>명령어와 <code>USER_ERRORS</code> 데이터 사전을 조회하여 확인할 수 있습니다.
+
+#### SHOW ERRORS로 오류 확인
+- SQL\*PLUS에서 발생한 오류를 확인하는 가장 간단한 방법은 SHOW ERRORS 명령어를 사용하는 것입니다. SHOW ERRORS 명령어는 가장 최근에 생성되거나 변경된 서브프로그램의 오류 정보를 출력합니다. 
+- SHOW ERRORS 명령어로 오류 확인하기
+
+```sql
+SHOW ERRORS;
+```
+
+- 결과 화면
+
+```
+PROCEDURE PRO_ERR에 대한 오류:
+
+LINE/COL ERROR
+-------- -----------------------------------------------------------------
+5/9      PLS-00103: 심볼 "="를 만났습니다 다음 중 하나가 기대될 때:
+         := . ( @ % ;
+         심볼이 ":= 계속하기 위해 "=" 전에 삽입되었음
+```
+
+- SHOW ERRORS 명령어는 줄여서 SHOW ERR로 사용할 수도 있습니다. 만약 최근에 발생한 프로그램 오류가 아니라 특정 프로그램의 오류 정보를 확인하고 싶다면 다음과 같이 프로그램 종류와 이름을 추가로 지정하면 됩니다. 
+
+```
+SHOW ERR 프로그램 종류 프로그램 이름;
+SHOW ERR PROCEDURE pro_err;
+```
+
+#### USER_ERRORS로 오류 확인
+
+```sql
+SELECT * 
+    FROM USER_ERRORS
+WHERE NAME = 'PRO_ERR';
+```
+
 ---
 # 함수 
 
