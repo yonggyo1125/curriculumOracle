@@ -60,6 +60,220 @@ END;
 ```
 
 #### 하나의 행만 조회되는 경우 
+- 하나의 행만이 조회되는 SELECT문을 커서로 지정하여 사용할 경우 SELECT INTO문을 사용할 때 보다 복잡한 여러 단계를 작성해야 하므로 다소 번거로워 보입니다. 커서의 효용성은 조회되는 행이 여러 개일 때 극대화됩니다.
+- 단일행 데이터를 저장하는 커서 사용하기
+
+```sql
+DECLARE 
+-- 커서 데이터를 입력할 변수 선언
+V_DEPT_ROW DEPT%ROWTYPE;
+
+-- 명시적 커서 선언(Declaration)
+CURSOR c1 IS 
+	SELECT DEPTNO, DNAME, LOC 
+	FROM DEPT
+	WHERE DEPTNO = 40;
+
+BEGIN
+-- 커서 열기(Open)
+OPEN c1;
+
+-- 커서로부터 읽어온 데이터 사용(Fetch)
+FETCH c1 INTO V_DEPT_ROW;
+
+DBMS_OUTPUT.PUT_LINE('DEPTNO : ' || V_DEPT_ROW.DEPTNO);
+DBMS_OUTPUT.PUT_LINE('DNAME : ' || V_DEPT_ROW.DNAME);
+DBMS_OUTPUT.PUT_LINE('LOC : ' || V_DEPT_ROW.LOC);
+
+-- 커서 닫기(Close)
+CLOSE c1;
+
+END;
+/
+```
+
+#### 여러 행이 조회되는 경우 사용하는 LOOP문
+
+- 여러 행의 데이터를 커서에 저장하여 사용하기(LOOP문 사용)
+
+```sql
+DECLARE
+-- 커서 데이터를 입력할 변수 선언
+V_DEPT_ROW DEPT%ROWTYPE;
+
+-- 명시적 커서 선언(Declaration)
+CURSOR c1 IS
+	SELECT DEPTNO, DNAME, LOC 
+	FROM DEPT;
+BEGIN
+-- 커서 열기(Open)
+OPEN c1;
+
+LOOP
+	-- 커서로부터 읽어온 데이터 사용(Fetch)
+	FETCH c1 INTO V_DEPT_ROW;
+
+	-- 커서의 모든 행을 읽어오기 위해 %NOTFOUND 속성 지정
+	EXIT WHEN c1%NOTFOUND;
+	
+DBMS_OUTPUT.PUT_LINE('DEPTNO : ' || V_DEPT_ROW.DEPTNO
+				|| ', DNAME : ' || V_DEPT_ROW.DNAME
+				|| ', LOC : ' || V_DEPT_ROW.LOC);
+END LOOP;
+
+-- 커서 닫기(Close)
+CLOSE c1;
+
+END;
+/
+```
+
+- %NOTFOUND는 실행된 FETCH문에서 행을 추출했으면 false, 추출하지 않았으면 true를 반환합니다. 즉 FETCH문을 통해 더 이상 추출한 데이터가 없을 경우에 LOOP 반복이 끝납니다. 
+- %NOTFOUND외에도 몇 가지 속성을 사용할 수 있으므로 다음 표를 참고하세요.
+
+|속성|설명|
+|---|------|
+|커서이름%NOTFOUND|수행된 FETCH문을 통해 추출된 행이 있으면 false, 없으면 true를 반환합니다.|
+|커서이름%FOUND|수행된 FETCH문을 통해 추출된 행이 있으면 true, 없으면 false를 반환합니다.|
+|커서이름%ROWCOUNT|현재까지 추출된 행 수를 반환합니다.|
+|커서이름%ISOPEN|커서가 열려(open) 있으면 true, 닫혀(close) 있으면 false를 반환합니다.|
+
+#### 여러 개의 행이 조회되는 경우(FOR LOOP문)
+- LOOP문을 사용하여 커서를 처리하는 방식은 커서 속성을 사용하여 반복 수행을 제어해야 합니다. 커서에 FOR LOOP문을 사용하면 좀 더 간편하게 여러 행을 다룰 수 있습니다. 커서에서 FOR LOOP문은 다음과 같이 사용합니다.
+
+```
+FOR 루프 인덱스 이름 IN 커서 이름 LOOP
+    결과 행별로 반복 수행할 작업;
+END LOOP;
+```
+
+- 루프 인덱스(loop index)는 커서에 저장된 각 행이 저장되는 변수를 뜻하며 '.'을 통해 행의 각 필드에 접근할 수 있습니다. 예를 들어 커서에 저장할 SELECT문에 DEPTNO 열이 존재하고 이 커서를 사용하는 루프 인덱스 이름이 c1_rec일 경우, c1_rec.DEPTNO는 SELECT문을 통해 조회된 데이터의 각 행에 해당하는 DEPTNO 열의 데이터를 가리키게 됩니다. 
+- 커서에 FOR LOOP문을 사용하면 OPEN, FETCH, CLOSE문을 작성하지 않습니다. FOR LOOP를 통해 각 명령어를 자동으로 수행하므로 커서 사용 방법이 간단하다는 장점이 있습니다.
+
+- FOR LOOP문을 활용하여 커서 사용하기
+
+```sql 
+DECLARE
+	-- 명시적 커서 선언(Declaraion)
+	CURSOR c1 IS 
+		SELECT DEPTNO, DNAME, LOC
+			FROM DEPT;
+BEGIN
+	-- 커서 FOR LOOP 시작 (자동 Open, Fetch, Close)
+	FOR c1_rec IN c1 LOOP
+		DBMS_OUTPUT.PUT_LINE('DEPTNO : ' || c1_rec.DEPTNO
+				|| ', DNAME : ' || c1_rec.DNAME
+				|| ', LOC : ' || c1_rec.LOC);
+	END LOOP;
+END;
+/
+```
+
+- 커서 각 행을 c1_rec 루프 인덱스에 저장하므로 결과 행을 저장하는 변수 선언도 필요하지 않습니다.
+
+#### 커서에 파라미터 사용하기
+- 지금까지 살펴본 커서에 지정한 SQL문은 작성한 그대로 사용합니다. 하지만 고정 값이 아닌 직접 입력한 값 또는 상황에 따라 여러 값을 번갈아 사용하려면 다음과 같이 커서에 파라미터를 지정할 수 있습니다.
+
+```
+CURSOR 커서 이름(파라미커 이름 자료형, ...) IS
+SELECT ... 
+```
+
+- 만약 DEPT 테이블의 부서 번호가 10번 또는 20번일 때 다른 수행을 하고 싶다면 다음과 같이 커서의 OPEN을 각각 명시하여 실행합니다.
+- 파라미터를 사용하는 커서 알아보기
+
+```sql
+DECLARE
+	-- 커서 데이터를 입력할 변수 선언
+	V_DEPT_ROW DEPT%ROWTYPE;
+	
+	-- 명시적 커서 선언(Declaration)
+	CURSOR c1 (p_deptno DEPT.DEPTNO%TYPE) IS 
+		SELECT DEPTNO, DNAME, LOC 
+			FROM DEPT
+		WHERE DEPTNO = p_deptno;
+BEGIN
+	-- 10번 부서 처리를 위해 커서 사용
+	OPEN c1 (10);
+		LOOP 
+			FETCH c1 INTO V_DEPT_ROW;
+			EXIT WHEN c1%NOTFOUND;
+			DBMS_OUTPUT.PUT_LINE('10번 부서 - DEPTNO : ' || V_DEPT_ROW.DEPTNO
+				|| ', DNAME : ' || V_DEPT_ROW.DNAME
+				|| ', LOC : ' || V_DEPT_ROW.LOC);
+		END LOOP;
+	CLOSE c1;
+	-- 20번 부서 처리를 위해 커서 사용
+	OPEN c1(20);
+		LOOP
+			FETCH c1 INTO V_DEPT_ROW;
+			EXIT WHEN c1%NOTFOUND;
+			DBMS_OUTPUT.PUT_LINE('20번 부서 - DEPTNO : ' || V_DEPT_ROW.DEPTNO
+					|| ', DNAME : ' || V_DEPT_ROW.DNAME
+					|| ', LOC : ' || V_DEPT_ROW.LOC);
+		END LOOP;
+	CLOSE c1;
+END;
+/
+```
+- 만약 커서 실행에 필요한 파라미터 값을 사용자에게 직접 입력받고 싶다면 & 기호와 치환 변수를 사용할 수 있습니다.
+- 커서에 사용할 파라미터 입력받기
+
+```sql
+DECLARE
+	-- 사용자가 입력한 부서 번호를 저장하는 변수선언
+	v_deptno DEPT.DEPTNO%TYPE;
+	-- 명시적 커서 선언(Declaration)
+	CURSOR c1 (p_deptno DEPT.DEPTNO%TYPE) IS 
+		SELECT DEPTNO, DNAME, LOC
+			FROM DEPT
+		WHERE DEPTNO = p_deptno;
+BEGIN
+	-- INPUT_DEPTNO에 부서 번호 입력받고 v_deptno에 대입
+	v_deptno := &INPUT_DEPTNO;
+	-- 커서 FOR LOOP 시작, c1 커서에 v_deptno를 대입
+	FOR c1_rec IN c1(v_deptno) LOOP
+		DBMS_OUTPUT.PUT_LINE('DEPTNO : ' || c1_rec.DEPTNO
+				|| ', DNAME : ' || c1_rec.DNAME
+				|| ', LOC : ' || c1_rec.LOC);
+	END LOOP;
+END;
+/
+```
+
+### 묵시적 커서 
+- 묵시적 커서는 별다른 선언 없이 SQL문을 사용했을 때 오라클에서 자동으로 선언되는 커서를 뜻합니다. 따라서 사용자가 OPEN, FETCH, CLOSE를 지정하지 않습니다. PL/SQL문 내부에서 DML 명령어나 SELECT INTO문 등이 실행될 때 자동으로 생성 및 처리됩니다.<br>(여러 행의 결과를 가지는 커서는 명시적 커서로만 사용 가능합니다.)
+- 자동으로 생성되어 실행되는 묵시적 커서는 별다른 PL/SQL문을 작성하지 않아도 되지만, 다음 묵시적 커서의 속성을 사용하면 현재 커서의 정보를 확인할 수 있습니다. 커서가 자동으로 생성되므로 커서 이름을 지정하지 않고 SQL 키워드로 속성을 지정하며, 명시적 커서의 속성과 유사한 기능을 갖습니다. 
+
+|속성|설명|
+|---|-----|
+|SQL%NOTFOUND|묵시적 커서 안에 추출한 행이 있으면 false, 없으면 true를 반환합니다. DML 명령어로 영향을 받는 행이 없을 경우에도 true를 반환합니다.|
+|SQL%FOUND|묵시적 커서 안에 추출한 행이 있으면 true, 없으면 false를 반환합니다. DML 명령어로 영향을 받는 행이 있다면 true를 반환합니다.|
+|SQL%ROWCOUNT|묵시적 커서에 현재까지 추출한 행 수 또는 DML 명령어로 영향받는 행 수를 반환합니다.|
+|SQL%ISOPEN|묵시적 커서는 자동으로 SQL문을 실행한 후 CLOSE되므로 이 속성은 항상 false를 반환합니다.|
+
+- 묵시적 커서의 속성 사용하기
+
+```sql 
+BEGIN 
+	UPDATE DEPT SET DNAME='DATABASE'
+		WHERE DEPTNO = 50;
+	
+	DBMS_OUTPUT.PUT_LINE('갱신된 행의 수 : ' || SQL%ROWCOUNT);
+	IF (SQL%FOUND) THEN 
+		DBMS_OUTPUT.PUT_LINE('갱신 대상 행 존재 여부 : true');
+	ELSE 
+		DBMS_OUTPUT.PUT_LINE('갱신 대상 행 존재 여부 : false');
+	END IF;
+
+	IF (SQL%ISOPEN) THEN 
+		DBMS_OUTPUT.PUT_LINE('커서의 OPEN 여부 : true');
+	ELSE 
+		DBMS_OUTPUT.PUT_LINE('커서의 OPEN 여부 : false');
+END IF;
+END;
+/
+```
 
 ---
 
