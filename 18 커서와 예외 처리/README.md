@@ -380,3 +380,112 @@ END;
 - 이와 달리 이름 없는 예외는 ORA-XXXXX 식으로 예외 번호는 있지만 이름이 정해져 있지 않은 예외를 뜻합니다. 이름이 없는 예외는 예외 처리부에서 사용하기 위해 이름을 직접 붙여서 사용합니다.
 
 ### 예외 처리부 작성 
+- 예외 처리부는 앞의 예제에서 보았듯 EXCEPTION절에 필요한 코드를 사용하여 작성합니다. 다음과 같이 여러 예외를 명시적으로 작성할 수 있습니다. WHEN으로 시작하는 절을 예외 핸들러(exception handler)라고 하며, 발생한 예외 이름과 일치하는 WHEN절의 명령어를 수행합니다(IF THEN문처럼 여러 예외 핸들러 중 일치하는 하나의 예외 핸들러 명령어만 수행합니다). 수행할 명령어는 PL/SQL 실행부와 마찬가지로 여러 문법을 사용할 수 있습니다. OTHERS는 먼저 작성한 어느 예외와도 일치하는 예외가 없을 경우에 처리할 내용을 작성합니다(IF 조건문의 ELSE와 비슷)
+
+```
+EXCEPTION
+    WHEN 예외 이름1 [OR 예외 이름2 - ] THEN
+        예외 처리에 사용할 명령어;
+    WHEN 예외 이름3 [OR 예외 이름4 - ] THEN 
+        예외 처리에 사용할 명령어;
+    ...
+    WHEN OTHERS THEN
+        예외 처리에 사용할 명령어;
+```
+
+#### 사전 정의된 예외 사용
+- 예외 핸들러에 사전 정의된 예외만을 사용할 때는 앞에서 살펴본 작성 방식대로 발생할 수 있는 예외를 명시합니다.
+- 사전 정의된 예외 사용하기
+
+```sql
+DECLARE
+	v_wrong NUMBER;
+BEGIN
+	SELECT DNAME INTO v_wrong
+		FROM DEPT
+	WHERE DEPTNO = 10;
+
+	DBMS_OUTPUT.PUT_LINE('예외가 발생하면 다음 문장은 실행되지 않습니다.');
+
+EXCEPTION
+	WHEN TOO_MANY_ROWS THEN
+		DBMS_OUTPUT.PUT_LINE('예외 처리 : 요구보다 많은 행 추출 오류 발생');
+	WHEN VALUE_ERROR THEN 
+		DBMS_OUTPUT.PUT_LINE('예외 처리 : 수치 또는 값 오류 발생');
+	WHEN OTHERS THEN 
+		DBMS_OUTPUT.PUT_LINE('예외 처리 : 사전 정의 외 오류 발생');
+END;
+/
+```
+
+#### 이름 없는 예외 사용
+
+- 만약 이름이 없는 내부 예외를 사용해야 한다면 이름을 직접 지정해 주어야 예외 처리부에서 사용할 수 있습니다. 
+- 이름을 직접 지어 줄 때 오른쪽과 같이 선언부에서 오라클 예외 번호와 함께 이름을 붙입니다. 이름이 정해진 예외는 사전 정의된 예외를 사용할 때와 마찬가지로 예외 처리부에서 지정한 이름으로 예외 핸들러에 작성합니다.
+
+```
+DECLARE
+    예외 이름1 EXCEPTION;
+    PRAGMA EXCEPTION_INIT(예외 이름1, 예외 번호);
+    
+...
+ 
+EXCEPTION
+    WHEN 예외 이름1 THEN
+        예외 처리에 사용할 명령어;
+    ... 
+END;
+```
+
+#### 사용자 정의 예외 사용
+
+- 사용자 정의 예외는 오라클에 정의되어 있지 않은 특정 상황을 직접 오류로 정의하는 방식입니다. 
+- 다음과 같이 예외 이름을 정해주고 실행부에서 직접 정의한 오류 상황이 생겼을 때 <code>RAISE</code> 키워드를 사용하여 예외를 직접 만들 수 있습니다. 
+- 이렇게 직접 만든 예외 역시 앞의 예외 처리와 마찬가지로 예외 처리부에서 예외 이름을 통해 수행할 내용을 작성해 줌으로써 처리합니다. 
+
+```
+DECLARE
+    사용자 예외 이름 EXCEPTION;
+    ...
+BEGIN
+    IF 사용자 예외를 발생시킬 조건 THEN
+        RAISE 사용자 예외 이름
+    ...
+    END IF;
+EXCEPTION
+    WHEN 사용자 예외 이름 THEN 
+        예외 처리에 사용할 명령어;
+    ... 
+END;
+```
+
+#### 오류 코드와 오류 메시지 사용
+
+- 오류 처리부가 잘 작성되어 있다면 오류가 발생해도 PL/SQL은 정상 종료 됩니다. PL/SQL문의 정상 종료 여부와 상관없이 발생한 오류 내역을 알고 싶을 때 SQLCODE, SQLERRM 함수를 사용합니다.
+- SQLCODE와 SQLERRM은 PL/SQL에서만 사용 가능한 함수로 SQL문에서는 사용할 수 없습니다.
+
+|함수|설명|
+|---|----|
+|SQLCODE|오류 번호를 반환하는 함수|
+|SQLERRM|오류 메시지를 반환하는 함수|
+
+- 오류 코드와 오류 메시지 사용하기
+
+```sql
+DECLARE
+	v_wrong NUMBER;
+BEGIN
+	SELECT DNAME INTO v_wrong
+		FROM DEPT
+	WHERE DEPTNO = 10;
+
+	DBMS_OUTPUT.PUT_LINE('예외가 발생하면 다음 문장은 실행되지 않습니다.');
+
+EXCEPTION
+	WHEN OTHERS THEN 
+		DBMS_OUTPUT.PUT_LINE('예외 처리 : 사전 정의 외 오류 발생');
+		DBMS_OUTPUT.PUT_LINE('SQLCODE : ' || TO_CHAR(SQLCODE));
+		DBMS_OUTPUT.PUT_LINE('SQLERRM : ' || SQLERRM);
+END;
+/
+```
