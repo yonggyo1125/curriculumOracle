@@ -26,6 +26,7 @@
 
 - 기본키는 중복되지 않는 유일한 값이라는 특성을 가졌기 때문에 하나 또는 여러 열의 조합으로 만들 수 있습니다.
 
+![image1](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/02%20%EA%B4%80%EA%B3%84%ED%98%95%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%EC%99%80%20%EC%98%A4%EB%9D%BC%ED%81%B4%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4/images/1.png)
 
 ### 보조키 
 - 보조키는 대체키(alternate key)라고 부르며 후보키(candidate key)에 속해 있는 키입니다.
@@ -33,11 +34,22 @@
 
 > 엄밀한 의미의 후보키는 기본키가 될 수 있는 모든 키를 의미합니다. 즉 기본키 역시 후보키에 속합니다. 이 후보키 중 기본키로 지정되지 않은 키를 보조키 또는 대체키라고 합니다. 그 밖에 행 식별이 가능한 키의 모든 조합을 의미하는 슈퍼키(super key)의 개념도 존재합니다.
 
+![image2](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/02%20%EA%B4%80%EA%B3%84%ED%98%95%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%EC%99%80%20%EC%98%A4%EB%9D%BC%ED%81%B4%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4/images/2.png)
 
 ### 외래키 
 - 외래키(FK: Foreign Key)는 특정 테이블에 포함되어 있으면서 다른 테이블의 기본키로 지정된 키를 의미합니다.
 
+![image3](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/02%20%EA%B4%80%EA%B3%84%ED%98%95%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%EC%99%80%20%EC%98%A4%EB%9D%BC%ED%81%B4%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4/images/3.png)
+
+> 외래키는 데이터 중복을 피하기 위해 테이블 사이의 관계를 규명하기 위한 필수 요소 입니다. 하지만 실무에서 데이터베이스를 활용하여 응용 프로그램을 만들 때 데이터의 구조 및 설계가 외래키를 사용해 너무 엄격하게 정의하면 응용 프로그램의 제작과 테스트 진행에 걸림돌이 되기도 합니다.<br>
+> 따라서 테이블 사이의 관계에서 개념적으로 외래키가 필수인 상황일지라도 응용 프로그램 제작의 효율 및 편의를 위해 외래키를 따로 정의하지 않고, 테이블 사이의 관계를 '느슨하게' 설계하여 이를 응용 프로그램 영역에서 처리하는 경우도 종종 발생합니다.
+
 ### 복합키
+
+- 복합키(composite key)는 여러 열을 조합하여 기본키 역할을 할 수 있게 만든 키를 뜻합니다.
+- 복합키를 만들 때 적게는 두세 개, 많게는 열 개가 넘는 열을 조합하기도 합니다. 왜냐하면 하나의 열만으로 행을 식별하는 것이 불가능하여 두 개 이상의 열 값을 함께 사용해야 각 행이 유일한 데이터로서 가치를 지니기 떄문
+
+![image4](https://raw.githubusercontent.com/yonggyo1125/curriculumOracle/master/02%20%EA%B4%80%EA%B3%84%ED%98%95%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%EC%99%80%20%EC%98%A4%EB%9D%BC%ED%81%B4%20%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4/images/4.png)
 
 ---
 
