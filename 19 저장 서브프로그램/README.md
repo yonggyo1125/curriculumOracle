@@ -393,7 +393,7 @@ WHERE NAME = 'PRO_ERR';
 
 - 함수는 프로시저와 달리 SQL문에서도 사용할 수 있다는 특징이 있습니다. RETURN절과 RETURN문을 통해 반드시 하나의 값을 반환해야 합니다.
 
-### 함수 생성하기
+## 함수 생성하기
 - 함수 생성은 프로시저와 마찬가지로 CREATE [OR REPLACE] 명령어와 FUNCTION 키워드를 명시하여 생성합니다. 
 - 프로시저와 작성 방식이나 문법 면에서는 별 차이가 없으나 함수는 반환 값의 자료형과 실행부에서 반환할 값을 RETURN절 및 RETURN문으로 명시해야 합니다. 
 - 실행부의 RETURN문이 실행되면 함수 실행은 즉시 종료 됩니다.
@@ -442,11 +442,11 @@ END func_aftertax;
 /
 ```
 
-### 함수 실행하기
+## 함수 실행하기
 
 - 생성된 함수는 익명 블록 또는 프로시저 같은 저장 서브프로그램, SQL문에서 사용할 수 있습니다. PL/SQL로 실행할 때는 함수 반환 값을 대입받을 변수가 필요합니다.
 
-#### PL/SQL로 함수 실행하기
+### PL/SQL로 함수 실행하기
 
 - 함수는 실행 후 하나의 값을 반환하므로 PL/SQL로 구현한 프로그램 안에 반환 값을 받기 위한 변수를 선언하여 사용한다.
 - PL/SQL에서 함수 사용하기 
@@ -461,7 +461,7 @@ END;
 /
 ```
 
-#### SQL문에서 함수 실행하기
+### SQL문에서 함수 실행하기
 
 - SQL문에서 제작한 함수를 사용하는 방식은 기존 오라클의 내장 함수와 같습니다. DUAL 테이블에 다음과 같이 값을 직접 입력하여 사용할 수 있습니다.
 - SQL에서 함수 사용하기
@@ -479,7 +479,7 @@ SELECT EMPNO, ENAME, SAL, func_aftertax(SAL) AS AFTERTAX
 	FROM EMP;
 ```
 
-### 함수 삭제하기
+## 함수 삭제하기
 
 - 다른 객체와 마찬가지로 <code>DROP FUNCTION</code> 명령어를 사용하여 함수를 삭제합니다.
 
@@ -490,5 +490,225 @@ DROP FUNCTION func_aftertax;
 ---
 # 패키지 
 
+- 패키지(package)는 업무나 기능 면에서 연관성이 높은 프로시저, 함수 등 여러 개의 PL/SQL 서브프로그램을 하나의 논리 그룹으로 묶어 통합,관리하는 데 사용하는 객체를 뜻합니다. 
+- 패키지를 사용하여 서브프로그램을 그룹화하면 다음과 같은 장점이 있습니다.
+
+|장점|설명|
+|---|-----|
+|모듈성|서브프로그램을 포함한 여러 PL/SQL 구성 요소를 모듈화할 수 있습니다. 모듈성은 잘 묶어 둔다는 뜻으로 프로그램의 이해를 쉽게 하고 패키지 사이의 상호 작용을 더 간편하고 명료하게 해 주는 역할을 합니다. 즉 PL/SQL로 제작한 프로그램의 사용 및 관리에 큰 도움을 줍니다.|
+|쉬운 응용 프로그램 설계|패키지에 포함할 서브프로그램은 완벽하게 완성되지 않아도 정의가 가능합니다. 이 때문에 전체 소스 코드를 다 작성하기 전에 미리 패키지에 저장할 서브프로그램을 지정할 수 있으므로 설계가 수월해집니다.|
+|정보 은닉|제작 방식에 따라 패키지에 포함하는 서브프로그램의 외부 노출 여부 또는 접근 여부를 지정할 수 있습니다. 즉 서브프로그램을 사용할 때 보안을 강화할 수 있습니다.|
+|기능성 향상|패키지 내부에는 서브프로그램 외에 변수,커서,예외 등도 각 세션이 유지되는 동안 선언해서 공용(public)으로 사용할 수 있습니다. 예를 들어 특정 커서 데이터는 세션이 종료되기 전까지 보존되므로 여러 서브프로그램에서 사용할 수 있습니다.|
+|성능 향상|패키지를 사용할 때 패키지에 포함한 모든 서브프로그램이 메모리에 한 번에 로딩되는데 메모리에 로딩된 후의 호출은 디스크 I/O를 일으키지 않으므로 성능이 향상됩니다.|
+
+> PL/SQL 서브프로그램의 제작,사용,관리,보안,성능 등에 좋은 영향을 끼칩니다.
+
+## 패키지 구조와 생성
+
+- 패키지는 프로시저, 함수와 달리 보통 두 부분으로 나누어 제작합니다. 
+- 하나는 명세(specification), 또 하나는 본문(body)이라고 부릅니다.
+
+### 패키지 명세
+- 패키지 명세는 패키지에 포함할 변수, 상수, 예외, 커서 그리고 PL/SQL 서브프로그램을 선언하는 용도로 작성합니다. 
+- 패키지 명세에 선언한 여러 객체는 패키지 내부뿐만 아니라 외부에서도 참조할 수 있습니다. 
+
+```
+CREATE [OR REPLACE] PACKAGE 패키지 이름
+IS | AS 
+    서브프로그램을 포함한 다양한 객체 선언
+END [패키지 이름];
+```
+
+- 패키지 생성하기
+
+```sql
+CREATE OR REPLACE PACKAGE pkg_example 
+IS 
+	spec_no NUMBER := 10;
+	FUNCTION func_aftertax(sal NUMBER) RETURN NUMBER;
+	PROCEDURE pro_emp(in_empno IN EMP.EMPNO%TYPE);
+	PROCEDURE pro_dept(in_deptno IN DEPT.DEPTNO%TYPE);
+END;
+/
+```
+
+- 이미 생성되어 있는 패키지 명세의 코드를 확인하거나 선언한 서브프로그램을 확인하려면 USER_SOURCE 데이터 사전을 조회하거나 DESC 명령어를 활용할 수 있습니다.
+- 패키지 명세 확인하기(USER_SOURCE 데이터 사전으로 조회)
+
+```sql
+SELECT TEXT
+	FROM USER_SOURCE
+WHERE TYPE = 'PACKAGE'
+	AND NAME = 'PKG_EXAMPLE';
+```
+
+- 패키지 명세 확인하기(DESC 명령어로 조회)
+
+```sql
+DESC pkg_example;
+```
+
+### 패키지 본문 
+- 패키지 본문에는 패키지 명세에서 선언한 서브프로그램 코드를 작성합니다. 그리고 패키지 명세에 선언하지 않은 객체나 서브프로그램을 정의하는 것도 가능합니다. 
+- 패키지 본문에만 존재하는 프로그램은 패키지 내부에서만 사용할 수 있습니다. 패키지 본문 이름은 패키지 명세 이름과 같게 지정해야 합니다.
+
+```
+CREATE [OR REPLACE] PACKAGE BODY 패키지 이름
+IS | AS 
+    패키지 명세에서 선언한 서브프로그램을 포함한 여러 객체를 정의
+    경에우 따라 패키지 명세에 존재하지 않는 객체 및 서브프로그램도 정의 가능
+END [패키지 이름];
+```
+
+- 패키지 본문 생성하기
+
+```sql
+CREATE OR REPLACE PACKAGE BODY pkg_example
+IS 
+	body_no NUMBER := 10;
+	
+	FUNCTION func_aftertax(sal NUMBER) RETURN NUMBER
+		IS 
+			tax NUMBER := 0.05;
+		BEGIN
+			RETURN (ROUND(sal - (sal * tax)));
+	END func_aftertax;
+
+	PROCEDURE pro_emp(in_empno IN EMP.EMPNO%TYPE)
+		IS 
+			out_ename EMP.ENAME%TYPE;
+			out_sal EMP.SAL%TYPE;
+		BEGIN
+			SELECT ENAME, SAL INTO out_ename, out_sal
+				FROM EMP
+			WHERE EMPNO = in_empno;
+			
+			DBMS_OUTPUT.PUT_LINE('ENAME : ' || out_ename);
+			DBMS_OUTPUT.PUT_LINE('SAL : ' || out_sal);
+	END pro_emp;
+
+	PROCEDURE pro_dept(in_deptno IN DEPT.DEPTNO%TYPE) 
+		IS 
+			out_dname DEPT.DNAME%TYPE;
+			out_loc DEPT.LOC%TYPE;
+		BEGIN
+			SELECT DNAME, LOC INTO out_dname, out_loc
+				FROM DEPT
+			WHERE DEPTNO = in_deptno;
+		
+		DBMS_OUTPUT.PUT_LINE('DNAME : ' || out_dname);
+		DBMS_OUTPUT.PUT_LINE('LOC : ' || out_loc);
+	END pro_dept;
+END;
+/
+```
+
+### 서브프로그램 오버로드
+- 기본적으로 서브프로그램 이름은 중복될 수 없습니다. 하지만 같은 패키지에서 사용하는 파라미터의 개수, 자료형, 순서가 다를 경우에 한해서만 이름이 같은 서브프로그램을 정의할 수 있습니다. 이를 서브프로그램 오버로드(subprogram overload)라고 합니다. 
+- 서브프로그램 오버로드는 보통 같은 기능을 수행하는 여러 서브프로그램이 입력 데이터를 각각 다르게 정의할 때 사용합니다. 또한 서브프로그램 종류가 같아야 오버로드가 가능합니다. 즉 특정 프로시저를 오버로드할 때 반드시 이름이 같은 프로시저로 정의해야 합니다. 프로시저와 이름이 같은 함수를 정의할 수는 없습니다. 
+
+```
+CREATE [OR REPLACE] PACKAGE 패키지 이름
+IS | AS
+    서브프로그램 종류 서브프로그램 이름(파라미터 정의);
+    서브프로그램 종류 서브프로그램 이름(개수나 자료형, 순서가 다른 파라미터 정의);
+END [패키지 이름];
+```
+
+- 프로시저 오버로드 하기
+
+```sql
+CREATE OR REPLACE PACKAGE pkg_overload
+IS 
+	PROCEDURE pro_emp(in_empno IN EMP.EMPNO%TYPE);
+	PROCEDURE pro_emp(in_empno IN EMP.ENAME%TYPE);
+END;
+/
+```
+
+- 패키지 본문에서 오버로드된 프로시저 작성하기
+
+```sql
+CREATE OR REPLACE PACKAGE BODY pkg_overload
+IS 
+	PROCEDURE pro_emp(in_empno IN EMP.EMPNO%TYPE)
+		IS 
+			out_ename EMP.ENAME%TYPE;
+			out_sal EMP.SAL%TYPE;
+		BEGIN
+			SELECT ENAME, SAL INTO out_ename, out_sal
+				FROM EMP
+			WHERE EMPNO = in_empno;
+		
+			DBMS_OUTPUT.PUT_LINE('ENAME : ' || out_ename);
+			DBMS_OUTPUT.PUT_LINE('SAL : ' || out_sal);
+	END pro_emp;
+
+	PROCEDURE pro_emp(in_ename IN EMP.ENAME%TYPE)
+		IS 
+			out_ename EMP.ENAME%TYPE;
+			out_sal EMP.SAL%TYPE;
+		BEGIN
+			SELECT ENAME, SAL INTO out_ename, out_sal
+				FROM EMP
+			WHERE ENAME = in_ename;
+		
+			DBMS_OUTPUT.PUT_LINE('ENAME : ' || out_ename);
+			DBMS_OUTPUT.PUT_LINE('SAL : ' || out_sal);
+	END pro_emp;
+END;
+/
+```
+
+
+## 패키지 사용하기
+
+- 패키지를 통해 그룹화된 변수, 상수, 예외, 커서 그리고 PL/SQL 서브프로그램은 패키지 이름과 마침표(.)와 사용할 객체 이름으로 사용할 수 있습니다.
+- 패키지에 포함된 서브프로그램 실행하기
+
+```sql
+BEGIN
+	DBMS_OUTPUT.PUT_LINE('--pkg_example.func_aftertax(3000)--');
+	DBMS_OUTPUT.PUT_LINE('after-tax: ' || pkg_example.func_aftertax(3000));
+
+	DBMS_OUTPUT.PUT_LINE('--pkg_example.pro_emp(7788)--');
+	pkg_example.pro_emp(7788);
+
+	DBMS_OUTPUT.PUT_LINE('--pkg_example.pro_dept(10)--');
+	pkg_example.pro_dept(10);
+	
+	DBMS_OUTPUT.PUT_LINE('--pkg_overload.pro_emp(7788)--');
+	pkg_overload.pro_emp(7788);
+	
+	DBMS_OUTPUT.PUT_LINE('--pkg_overload.pro_emp(''SCOTT'')--');
+	pkg_overload.pro_emp('SCOTT');
+END;
+/
+```
+
+## 패키지 삭제하기 
+- 두 가지 방식을 사용하여 패키지를 삭제할 수 있습니다. 패키지 명세와 본문을 한 번에 삭제하거나 패키지 본문만 삭제할 수도 있습니다. 
+- 하지만 패키지에 포함된 서브프로그램을 따로 삭제하는 것은 불가능합니다.
+- CREATE OR REPLACE문을 활용하여 패키지 안의 객체 또는 서브프로그램을 수정 및 삭제할 수 있습니다.
+
+```
+패키지 명세의 본문을 한 번에 삭제하기
+DROP PACKAGE 패키지 이름;
+
+패키지 본문만을 삭제
+DROP PACKAGE BODY 패키지 이름;
+```
+
 ---
 # 트리거 
+
+## 트리거란? 
+- 오라클에서 트리거(trigger)는 데이터베이스 안의 특정 상황이나 동작, 즉 이벤트가 발생할 경우에 자동으로 실행되는 기능을 정의하는 PL/SQL 서브프로그램입니다.
+- 예를 들어 어떤 테이블의 데이터를 특정 사용자가 변경하려 할 때 해당 데이터나 사용자 기록을 확인한다든지 상황에 따라 데이터를 변경하지 못하게 막는 것이 가능합니다. 오라클 데이터베이스가 가동하거나 종료할 때 데이터베이스 관리자 등 관련 업무자에게 메일을 보내는 기능도 구현할 수 있습니다. 이러한 트리거를 통해 연관 데이터 작업을 잘 정의해 두면 다음과 같은 장점이 있습니다. 
+    - 데이터와 연관된 여러 작업을 수행하기 위해 여러 PL/SQL문 또는 서브프로그램을 일일이 실행해야 하는 번거로움을 줄일 수 있습니다. 즉, 데이터 관련 작업을 좀 더 간편하게 수행할 수 있습니다..
+    - 제약 조건(constraints)만으로 구현이 어렵거나 불가능한 좀 더 복잡한 데이터 규칙을 정할 수 있어 더 수준 높은 데이터 정의가 가능합니다.
+    - 데이터 변경과 관련된 일련의 정보를 기록해 둘 수 있으므로 여러 사용자가 공유하는 데이터 보안성과 안정성 그리고 문제가 발생했을 때 대처 능력을 높일 수 있습니다.
+
+- 하지만 트리거는 특정 작업 또는 이벤트 발생으로 다른 데이터 작업을 추가로 실행하기 때문에 무분별하게 사용하면 데이터베이스 성능을 떨어뜨리는 원인이 되므로 주의가 필요합니다. 
+- 트리거는 테이블,뷰,스키마,데이터베이스 수준에서 다음과 같은 이벤트에 동작을 지정할 수 있습니다.
+- 
