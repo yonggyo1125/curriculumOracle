@@ -711,4 +711,216 @@ DROP PACKAGE BODY 패키지 이름;
 
 - 하지만 트리거는 특정 작업 또는 이벤트 발생으로 다른 데이터 작업을 추가로 실행하기 때문에 무분별하게 사용하면 데이터베이스 성능을 떨어뜨리는 원인이 되므로 주의가 필요합니다. 
 - 트리거는 테이블,뷰,스키마,데이터베이스 수준에서 다음과 같은 이벤트에 동작을 지정할 수 있습니다.
-- 
+    - 데이터 조작어(DML): INSERT, UPDATE, DELETE 
+    - 데이터 정의어(DDL): CREATE, ALTER, DROP
+    - 데이터베이스 동작: SERVERERROR, LOGON, LOGOFF, STARTUP, SHUTDOWN
+
+- 트리거가 발생할 수 있는 이벤트 종류에 따라 오라클은 트리거를 다음과 같이 구분합니다.
+
+| 종류    |설명|
+|-------|----|
+|DML 트리거|INSERT, UPDATE, DELETE와 
+|DDL 트리거|CREATE, ALTER, DROP과 같은 DDL 명령어를 기점으로 동작함|
+|INSTEAD OF 트리거|뷰(View)에 사용하는 DML 명령어를 기점으로 동작함|
+|시스템(system) 트리거|데이터베이스나 스키마 이벤트로 동작함|
+|단순(simple) 트리거|다음 각 지점(timing point)에 동작함<br>- 트리거를 작동시킬 문장이 실행되기 전 시점<br>- 트리거를 작동시킬 문장이 실행된 후 시점<br>- 트리거를 작동시킬 문장이 행에 영향을 미치기 전 시점<br>- 트리거를 작동시킬 문장이 행에 영향을 준 후 시점|
+|복합(compound) 트리거|단순 트리거의 여러 시점에 동작함|
+
+
+## DML 트리거
+
+### DML 트리거 형식 
+- DML 트리거는 특정 테이블에 DML 명령어를 실행했을 때 작동하는 트리거입니다. 기본 형식은 다음과 같습니다.
+
+```
+CREATE [OR REPLACE] TRIGGER 트리거 이름 - (1)
+BEFORE | AFTER - (2) 
+INSERT | UPDATE | DELETE ON 테이블 이름 - (3)
+REFERENCING OLD as old | NOW as new - (4)
+FOR EACH ROW WHEN 조건식 - (5) 
+FOLLOWS 트리거 이름2, 트리거 이름3 ...  - (6)
+ENABLE | DISABLE  - (7)
+
+DECLARE
+  선언부 
+BEGIN 
+  실행부 
+EXCEPTION
+  예외 처리부
+END;
+```
+
+|번호|설명|
+|---|----|
+|(1)|트리거 이름을 명시하고 트리거를 생성합니다. 트리거 내용을 갱신하려면 OR REPLACE 키워드와 함게 명시합니다.|
+|(2)|트리거가 작동할 타이밍을 지정합니다. BEFORE는 DML 명령어가 실행되기 전 시점, AFTER는 DML 명령어가 실행된 후 시점에 트리거가 작동합니다.|
+|(3)|지정한 테이블에 트리거가 작동할 DML 명령어를 작성합니다. 여러 종류의 DML 명령어를 지정할 경우네는 OR로 구분합니다.|
+|(4)|DML로 변경되는 행의 변경 전과 변경 후 값을 참조하는 데 사용합니다(생략 가능).|
+|(5)|트리거를 실행하는 DML 문장에 한 번만 실행할지 DML 문장에 의해 영향받는 행별로 실행할지를 지정합니다. 생략하면 트리거는 DML 명령어가 실행할 때 한 번만 실행합니다. 생략하지 않고 사용할 경우, DML 명령어에 영향받는 행 중 트리거를 작동시킬 행을 조건식으로 지정할 수 있습니다.|
+|(6)|오라클 11g부터 사용 가능한 키워드로서 여러 관련 트리거의 실행 순서를 지정합니다(생략 가능).|
+|(7)|오라클 11g부터 사용 가능한 키워드로서 트리거의 활성화,비활성화를 지정합니다(생략 가능).|
+
+## DML 트리거의 제작 및 사용(BEFORE)
+- EMP_TRG 테이블 생성하기
+
+```sql
+CREATE TABLE EMP_TRG 
+	AS SELECT * FROM EMP;
+```
+
+- DML 실행 전에 수행할 트리거 생성하기
+
+```sql
+CREATE OR REPLACE TRIGGER trg_emp_nodml_weekend
+BEFORE 
+INSERT OR UPDATE OR DELETE ON EMP_TRG
+BEGIN
+	IF TO_CHAR(SYSDATE, 'DY') IN ('토', '일') THEN 
+		IF INSERTING THEN 
+			raise_application_error(-20000, '주말 사원정보 추가 불가');
+		ELSIF UPDATING THEN
+			raise_application_error(-20001, '주말 사원정보 수정 불가');
+		ELSIF DELETING THEN 
+			raise_application_error(-20002, '주말 사원정보 삭제 불가');
+		ELSE 
+			raise_application_error(-20003, '주말 사원정보 변경 불가');
+		END IF;
+	END IF;
+END;
+/
+```
+
+- 이제 트리거가 작동하도록 EMP_TRG 테이블에 DML 명령어를 사용해 봅시다. 트리거는 특정 이벤트 발생할 때 작동하는 서브프로그램이므로 프로시저나 함수와 같이 EXECUTE 또는 PL/SQL 블록에서 따로 실행하지는 못합니다.
+- 먼저 오라클 데이터베이스가 설치된 OS의 날짜를 평일로 변경해 준 후 다음과 같이 EMP_TRG 테이블에 UPDATE문을 사용해 봅시다. 평일의 경우 DML 명령어가 분제없이 잘 실행되는 것을 확인할 수 있습니다. 
+
+- 평일 날짜로 EMP_TRG 테이블 UPDATE 하기
+
+```sql
+UPDATE EMP_TRG SET SAL = 3500 WHERE EMPNO = 7788;
+```
+
+- 이번에는 날짜를 토요일이나 일요일로 변경해서 실행해 보겠습니다. 트리거 내부에서 주말에 DML 명령어가 실행되면 오류를 발생시키고 있으므로 오류 메시지와 함게 DML 명령어의 실행이 취소됨을 알 수 있습니다.
+- 주말 날짜에 EMP_TRG 테이블 UPDATE하기
+
+```sql 
+UPDATE EMP_TRG SET SAL = 3500 WHERE EMPNO = 7788;
+```
+
+## DML 트리거의 제작 및 사용(AFTER)
+
+- 이번에는 DML 명령어가 실행된 후 작동하는 AFTER 트리거를 제작해봅시다. 앞서 생성한 EMP_TRG 테이블에 DML 명령어가 실행될 경우 테이블에 수행된 DML 명령어의 종류, DML을 실행시킨 사용자, DML 명령어가 수행된 날짜와 시간을 저장할 EMP_TRG_LOG 테이블을 다음과 같이 생성해 주세요.
+- EMP_TRG_LOG 테이블 생성하기
+
+```sql
+CREATE TABLE EMP_TRG_LOG(
+	TABLENAME VARCHAR2(10), -- DML이 수행된 테이블 이름
+	DML_TYPE VARCHAR2(10),  -- DML 명령어의 종류
+	EMPNO NUMBER(4),   -- DML 대상이 된 사원 번호
+	USER_NAME VARCHAR2(30),  -- DML을 수행한 USER 이름
+	CHANGE_DATE DATE    -- DML이 수행된 날짜
+);
+```
+
+- 그리고 EMP_TRG 테이블에 DML 명령어를 수행한 후 EMP_TRG_LOG 테이블에 EMP_TRG 테이블 데이터 변경 사항을 기록하는 트리거를 생성합니다.
+
+```sql
+CREATE OR REPLACE TRIGGER trg_emp_log
+AFTER 
+INSERT OR UPDATE OR DELETE ON EMP_TRG
+FOR EACH ROW
+
+BEGIN
+	
+	IF INSERTING THEN 
+		INSERT INTO EMP_TRG_LOG 
+			VALUES ('EMP_TRG', 'INSERT', :new.EMPNO, SYS_CONTEXT('USERENV', 'SESSION_USER'), SYSDATE);
+	
+		ELSIF UPDATING THEN 
+			INSERT INTO EMP_TRG_LOG 
+			VALUES ('EMP_TRG', 'UPDATE', :old.EMPNO, SYS_CONTEXT('USERENV', 'SESSION_USER'), SYSDATE);
+		
+		ELSIF DELETING THEN
+			INSERT INTO EMP_TRG_LOG 
+			VALUES ('EMP_TRG', 'DELETE', :old.EMPNO, SYS_CONTEXT('USERENV', 'SESSION_USER'), SYSDATE);
+	END IF;
+END;
+/
+```
+
+- EMP_TRG 테이블에 INSERT 실행하기
+
+```sql
+INSERT INTO EMP_TRG
+VALUES(9999, 'TestEmp', 'CLERK', 7788, TO_DATE('2018-03-03', 'YYYY-MM-DD'), 1200, NULL, 20);
+```
+
+- EMP_TRG 테이블에 INSERT 실행하기(COMMIT하기)
+
+```sql
+COMMIT;
+```
+
+- 결과를 살펴보면 EMP_TRG 테이블에 사원이 추가되었음을 확인할 수 있고 EMP_TRG_LOG 테이블에는 EMP_TRG 테이블에 INSERT가 실행된 내용이 기록되어 있습니다.
+
+- EMP_TRG 테이블의 INSERT 확인하기
+
+```sql
+SELECT * FROM EMP_TRG;
+```
+
+- EMP_TRG_LOG 테이블의 INSERT 기록 확인하기
+
+```sql
+SELECT * FROM EMP_TRG_LOG;
+```
+
+- EMP_TRG 테이블에 UPDATE 실행하기
+
+```sql
+UPDATE EMP_TRG
+  SET SAL = 1300
+ WHERE MGR = 7788;
+```
+
+- EMP_TRG 테이블에 UPDATE 실행하기(COMMIT 하기)
+
+```sql
+COMMIT;
+```
+
+## 트리거 관리
+
+### 트리거 정보 조회
+ 
+- USER_TRIGGERS로 트리거 정보 조회하기
+
+```sql
+SELECT TRIGGER_NAME, TRIGGER_TYPE, TRIGGERING_EVENT, TABLE_NAME, STATUS
+	FROM USER_TRIGGERS;
+```
+
+## 트리거 변경
+
+- AFTER TRIGGER 명령어로 트리거 상태를 변경할 수 있습니다. 특정 트리거를 활성화 또는 비활성화하려면 AFTER TRIGGER 명령어에 ENABLE 또는 DISABLE 옵션을 지정합니다.
+
+```sql
+ALTER TRIGGER 트리거 이름 ENABLE | DISABLE;
+```
+
+- 특정 테이블과 관련된 모든 트리거의 상태를 활성화하거나 비활성화하는 것도 가능합니다. 이 경우는 ALTER TABLE 명령어를 사용합니다. 
+
+```sql
+특정 테이블과 관련된 모든 트리거의 상태 활성화
+ALTER TABLE 테이블 이름 ENABLE ALL TRIGGERS;
+
+특정 테이블과 관련된 모든 트리거의 상태 비활성화
+ALTER TABLE 테이블 이름 DISABLE ALL TRIGGERS;
+```
+
+## 트리거 삭제
+
+- 다른 오라클 객체와 마찬가지로 DROP문을 사용하여 트리거를 삭제할 수 있습니다.
+
+```sql 
+DROP TRIGGER 트리거 이름;
+```
