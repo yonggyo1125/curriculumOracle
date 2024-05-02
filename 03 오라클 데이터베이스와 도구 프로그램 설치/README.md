@@ -1,10 +1,8 @@
 # 도커 명령어 
 
-- 도커 이미지 pull
-
-```
-docker image pull 레파지토리명[:태그명]
-```
+- 도커 이미지 pull  : docker image pull 레파지토리명\[:태그명\]
+- docker images : 다운받은 이미지 확인 
+- docker rmi 이미지 ID  : 이미지 삭제
 
 - docker ps : 실행중인 컨테이너 목록 확인
 - docker ps -a : 전체 컨테이너 목록 확인
