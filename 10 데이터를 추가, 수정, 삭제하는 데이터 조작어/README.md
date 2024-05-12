@@ -217,7 +217,7 @@ SELECT * FROM DEPT_TEMP2;
 ROLLBACK
 ```
 
-|ROLLBACK 명령어는 TCL(Transation Control Language) 명령어 중 하나입니다. 정해진 시점 이후에 실행된 DML 명령어, 즉 INSERT, UPDATE, DELETE의 실행을 취소하는 명령어입니다. INSERT에서 언급한 COMMIT 명령어와는 반대 의미입니다.
+> ROLLBACK 명령어는 TCL(Transation Control Language) 명령어 중 하나입니다. 정해진 시점 이후에 실행된 DML 명령어, 즉 INSERT, UPDATE, DELETE의 실행을 취소하는 명령어입니다. INSERT에서 언급한 COMMIT 명령어와는 반대 의미입니다.
 
 ### 데이터 일부분 수정하기
 - UPDATE문에서는 수정 대상 행을 선별하기 위해 WHERE절과 조건식을 사용합니다.
