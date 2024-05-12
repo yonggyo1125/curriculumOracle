@@ -108,7 +108,7 @@ SELECT * FROM DBA_USERS WHERE USERNAME = 'SCOTT';
 SELECT * FROM USER_INDEXES;
 ```
 
-- SCOOT 계정이 소유한 인덱스 컬럼 정보 알아보기(SCOTT 계정일 때)
+- SCOTT 계정이 소유한 인덱스 컬럼 정보 알아보기(SCOTT 계정일 때)
 
 ```
 SELECT * FROM USER_IND_COLUMNS;
