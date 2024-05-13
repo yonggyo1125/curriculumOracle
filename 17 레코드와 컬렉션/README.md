@@ -221,7 +221,7 @@ DECLARE
 BEGIN
 	FOR i IN (SELECT DEPTNO, DNAME FROM DEPT) LOOP
 		idx := idx + 1;
-		dept_arr(idx).deptno := i.DEPTNO
+		dept_arr(idx).deptno := i.DEPTNO;
 		dept_arr(idx).dname := i.DNAME;
 	
 		DBMS_OUTPUT.PUT_LINE(dept_arr(idx).deptno || ' : ' || dept_arr(idx).dname);
