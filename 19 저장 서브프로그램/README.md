@@ -63,7 +63,7 @@ BEGIN
 	V_ENAME := 'SCOTT';
 	DBMS_OUTPUT.PUT_LINE('V_EMPNO : ' || V_EMPNO);
 	DBMS_OUTPUT.PUT_LINE('V_ENAME : ' || V_ENAME);
-END;
+END pro_noparam;
 /
 ```
 
@@ -71,14 +71,14 @@ END;
 - 생성한 프로시저는 SQL\*PLUS에서 바로 사용하거나 다른 PL/SQL 블록에서 실행할 수 있습니다. SQL\*PLUS에서 실행할 때 다음과 같이 EXECUTE 명령어를 사용합니다.
 
 ```
-EXECUTE 프로시저 이름;
+CALL 프로시저 이름();
 ```
 
 - 생성한 프로시저 실행하기
 
 ```sql
 SET SERVEROUTPUT ON;
-EXECUTE pro_noparam;
+CALL pro_noparam();
 ```
 
 #### PL/SQL 블록에서 프로시저 실행하기
@@ -194,26 +194,26 @@ BEGIN
 	DBMS_OUTPUT.PUT_LINE('param2 : ' || param2);
 	DBMS_OUTPUT.PUT_LINE('param3 : ' || param3);
 	DBMS_OUTPUT.PUT_LINE('param4 : ' || param4);
-END;
+END pro_param_in;
 /
 ```
 
 - 파라미터를 입력하여 프로시저 사용하기
 
 ```
-EXECUTE pro_param_in(1,2,9,8);
+CALL pro_param_in(1,2,9,8);
 ```
 
 - 파라미터 param3, param4는 기본값이 지정되어 있는 상태이므로 호출할 때 값을 지정하지 않아도 실행이 가능합니다. 다음과 같이 두 개 값만 지정하여 프로시저를 실행하면 기본값이 지정된 param3, param4는 기본값이 출력되고 두 값은 param1, param2 파라미터에 순서대로 입력됩니다.
 
 ```
-EXECUTE pro_param_in(1,2);
+CALL pro_param_in(1,2);
 ```
 
 - param1, param2 파라미터는 기본값이 지정되어 있지 않습니다. 만약 pro_param_in 프로시저를 호출 할 때 기본값이 지정되지 않은 파라미터 수보다 적은 수의 값을 지정하면 프로시저 실행은 실패하게 됩니다.
 
 ```
-EXECUTE pro_param_in(1);
+CALL pro_param_in(1);
 ```
 
 - 결과 화면
